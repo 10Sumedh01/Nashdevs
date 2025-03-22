@@ -74,7 +74,7 @@ class Player:
         
         # Flashlight effect
         if self.flashlight:
-            flashlight_radius = 250
+            flashlight_radius = 300
             mask = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
             mask.fill((0, 0, 0, 200))
             pygame.draw.circle(mask, (0, 0, 0, 0), 

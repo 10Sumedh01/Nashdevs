@@ -4,7 +4,8 @@ ZOMBIE_IMAGE_PATH = "assets/zombie.png"
 SPECIAL_ZOMBIE_IMAGE_PATH = "assets/special_zombie.png"
 
 # --- Constants ---
-WIDTH, HEIGHT = 800, 600
+WIDTH = 1280 #800
+HEIGHT = 720 #600
 FPS = 60
 GRID_SPACING = 100
 PLAYER_MAX_HEALTH = 100
