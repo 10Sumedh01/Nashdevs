@@ -36,17 +36,18 @@ def main():
         dt = clock.tick(FPS)
         current_time = pygame.time.get_ticks()
         elapsed_time = current_time - start_ticks
+        offset = pygame.Vector2(player.pos.x - WIDTH//2, player.pos.y - HEIGHT//2)
 
+        # Get mouse position in world coordinates
+        mouse_pos = pygame.mouse.get_pos()
+        world_mouse_pos = pygame.Vector2(mouse_pos) + offset
+
+        # Event handling
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == MOUSEBUTTONDOWN and not game_over:
-                mouse_pos = pygame.mouse.get_pos()
-                world_mouse_pos = pygame.Vector2(mouse_pos) + pygame.Vector2(
-                    player.pos.x - WIDTH//2,
-                    player.pos.y - HEIGHT//2
-                )
                 bullet = player.shoot(world_mouse_pos)
                 if bullet:
                     bullets.append(bullet)
@@ -54,6 +55,8 @@ def main():
                 zombies.append(spawn_zombie(player.pos, zombie_speed_multiplier))
 
         if not game_over:
+            # Update player rotation and position
+            player.update_rotation(world_mouse_pos)
             player.update(obstacles)
             player.update_invincibility()
 
@@ -104,7 +107,6 @@ def main():
                 start_ticks = current_time
 
         # Drawing
-        offset = pygame.Vector2(player.pos.x - WIDTH//2, player.pos.y - HEIGHT//2)
         screen.fill(DARK_RED)
         draw_grid(screen, offset)
         

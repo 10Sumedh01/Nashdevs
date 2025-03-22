@@ -1,3 +1,8 @@
+# Asset paths
+PLAYER_IMAGE_PATH = "assets/player.png"
+ZOMBIE_IMAGE_PATH = "assets/zombie.png"
+SPECIAL_ZOMBIE_IMAGE_PATH = "assets/special_zombie.png"
+
 # --- Constants ---
 WIDTH, HEIGHT = 800, 600
 FPS = 60
@@ -30,7 +35,7 @@ GRID_COLOR = (40, 40, 60)
 TEXT_COLOR = (240, 240, 240)
 
 # Player settings
-PLAYER_SIZE = 30
+PLAYER_SIZE = 75
 PLAYER_SPEED = 5
 
 # Zombie settings

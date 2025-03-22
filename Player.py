@@ -1,6 +1,7 @@
 import pygame
-from constants import PLAYER_MAX_HEALTH,WIDTH,HEIGHT,PLAYER_SPEED,PLAYER_SIZE,PLAYER_START_AMMO,PLAYER_COLOR
+import math
 from Bullet import Bullet
+from constants import PLAYER_MAX_HEALTH, WIDTH, HEIGHT, PLAYER_SPEED, PLAYER_SIZE, PLAYER_START_AMMO, PLAYER_IMAGE_PATH
 
 class Player:
     def __init__(self):
@@ -13,6 +14,11 @@ class Player:
         self.invincible = False
         self.invincible_duration = 1000
         self.flashlight = True
+        self.angle = 0
+        
+        # Load and scale player image
+        self.original_image = pygame.image.load(PLAYER_IMAGE_PATH).convert_alpha()
+        self.original_image = pygame.transform.scale(self.original_image, (self.size, self.size))
 
     def take_damage(self, damage):
         if not self.invincible:
@@ -49,15 +55,24 @@ class Player:
                 self.pos = old_pos
                 break
 
+    def update_rotation(self, target_pos):
+        """Update player rotation to face target position"""
+        direction = target_pos - self.pos
+        if direction.length() > 0:
+            self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
+
     def get_rect(self):
         return pygame.Rect(self.pos.x - self.size//2,
                          self.pos.y - self.size//2,
                          self.size, self.size)
 
     def draw(self, surface, offset):
-        rect = self.get_rect().move(-offset.x, -offset.y)
-        pygame.draw.rect(surface, PLAYER_COLOR, rect)
+        # Draw rotated player image
+        rotated_image = pygame.transform.rotate(self.original_image, self.angle)
+        img_rect = rotated_image.get_rect(center=(self.pos.x - offset.x, self.pos.y - offset.y))
+        surface.blit(rotated_image, img_rect)
         
+        # Flashlight effect
         if self.flashlight:
             flashlight_radius = 250
             mask = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
