@@ -1,3 +1,4 @@
+# DynamicObstacle.py
 import pygame
 from Obstacle import Obstacle
 from constants import DYNAMIC_COLOR
@@ -20,4 +21,8 @@ class DynamicObstacle(Obstacle):
 
     def draw(self, surface, offset):
         rect = self.get_rect().move(-offset.x, -offset.y)
-        pygame.draw.rect(surface, DYNAMIC_COLOR, rect)
+        # If flagged as a fire obstacle, draw in red.
+        if hasattr(self, 'is_fire') and self.is_fire:
+            pygame.draw.rect(surface, (255, 0, 0), rect)
+        else:
+            pygame.draw.rect(surface, DYNAMIC_COLOR, rect)

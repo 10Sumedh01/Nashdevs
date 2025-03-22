@@ -1,8 +1,8 @@
+# Zombie.py
 import pygame
-from constants import ZOMBIE_COLOR,ZOMBIE_SIZE,ZOMBIE_SPEED
 import math
-
-ZOMBIE_IMAGE_PATH = "assets/zombie.png"
+from constants import ZOMBIE_COLOR, ZOMBIE_SIZE, ZOMBIE_SPEED, COLLISION_THRESHOLD
+from MapManager import line_of_sight_clear
 
 class Zombie:
     def __init__(self, spawn_pos, speed_multiplier=1.0):
@@ -11,33 +11,77 @@ class Zombie:
         self.size = ZOMBIE_SIZE
         self.is_special = False
         self.health = 100
-        self.angle = 0  # Add angle attribute
-        
-        # Load and scale zombie image
+        self.angle = 0
+        self.path = []
+        self.path_index = 0
+        self.last_path_update = pygame.time.get_ticks()
+        ZOMBIE_IMAGE_PATH = "assets/zombie.png"
         self.original_image = pygame.image.load(ZOMBIE_IMAGE_PATH).convert_alpha()
         self.original_image = pygame.transform.scale(self.original_image, (self.size, self.size))
-        self.image = self.original_image  # Store original for rotations
+        self.image = self.original_image
 
     def take_damage(self, damage):
         self.health -= damage
         return self.health <= 0
 
-    def update(self, player_pos, obstacles):
-        old_pos = self.pos.copy()
-        direction = player_pos - self.pos
-        if direction.length() > 0:
-            # Calculate angle to face player (adjusted for right-facing asset)
-            self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
-            direction = direction.normalize()
-            self.pos += direction * self.speed
+    def update(self, player_pos, obstacles, map_manager):
+        current_time = pygame.time.get_ticks()
+        # Try direct approach if line-of-sight is clear.
+        if line_of_sight_clear(self.pos, player_pos, obstacles):
+            direction = player_pos - self.pos
+            if direction.length() > 0:
+                self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
+                direction = direction.normalize()
+                candidate_pos = self.pos + direction * self.speed
+                candidate_rect = pygame.Rect(candidate_pos.x - self.size // 2,
+                                             candidate_pos.y - self.size // 2,
+                                             self.size, self.size)
+                collision = any(candidate_rect.colliderect(obs.get_rect()) for obs in obstacles)
+                if not collision:
+                    self.pos = candidate_pos
+                    self.path = []
+                    self.path_index = 0
+                    self.last_path_update = current_time
+                else:
+                    # If collision, force A* path recalculation (subject to cooldown).
+                    if current_time - self.last_path_update > 500:
+                        self.path = map_manager.astar(self.pos, player_pos)
+                        self.path_index = 0
+                        self.last_path_update = current_time
+        else:
+            # Use A* pathfinding if direct path is blocked.
+            if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500):
+                self.path = map_manager.astar(self.pos, player_pos)
+                self.path_index = 0
+                self.last_path_update = current_time
+            if self.path and self.path_index < len(self.path):
+                target = self.path[self.path_index]
+                direction = target - self.pos
+                if direction.length() < self.speed:
+                    self.pos = target
+                    self.path_index += 1
+                else:
+                    direction = direction.normalize()
+                    candidate_pos = self.pos + direction * self.speed
+                    candidate_rect = pygame.Rect(candidate_pos.x - self.size // 2,
+                                                 candidate_pos.y - self.size // 2,
+                                                 self.size, self.size)
+                    collision = any(candidate_rect.colliderect(obs.get_rect()) for obs in obstacles)
+                    if not collision:
+                        self.pos = candidate_pos
+                    else:
+                        if current_time - self.last_path_update > 500:
+                            self.path = map_manager.astar(self.pos, player_pos)
+                            self.path_index = 0
+                            self.last_path_update = current_time
+                self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
 
     def get_rect(self):
-        return pygame.Rect(self.pos.x - self.size//2,
-                         self.pos.y - self.size//2,
-                         self.size, self.size)
+        return pygame.Rect(self.pos.x - self.size // 2,
+                           self.pos.y - self.size // 2,
+                           self.size, self.size)
 
     def draw(self, surface, offset):
-        # Rotate the original image and get its rect
         rotated_image = pygame.transform.rotate(self.original_image, self.angle)
         img_rect = rotated_image.get_rect(center=(self.pos.x - offset.x, self.pos.y - offset.y))
         surface.blit(rotated_image, img_rect)

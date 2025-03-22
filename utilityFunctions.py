@@ -1,3 +1,4 @@
+# utilityFunctions.py
 import math
 import random
 import pygame
@@ -7,7 +8,6 @@ from SpecialZombie import SpecialZombie
 from Zombie import Zombie
 from constants import DESTRUCTIBLE_PROB, DYNAMIC_PROB, GRID_COLOR, GRID_SPACING, HEIGHT, MAZE_CELL_SIZE, MAZE_FILL_PROB, MAZE_REGION_SIZE, MIN_SPAWN_DIST, SAFE_ZONE_MARGIN, SPECIAL_ZOMBIE_IMMOBILE_DURATION, SPECIAL_ZOMBIE_PROXIMITY_RADIUS, WIDTH
 
-# --- Utility Functions ---
 def draw_grid(surface, offset):
     start_x = int(offset.x // GRID_SPACING * GRID_SPACING)
     start_y = int(offset.y // GRID_SPACING * GRID_SPACING)
@@ -18,7 +18,7 @@ def draw_grid(surface, offset):
     for y in range(start_y, end_y, GRID_SPACING):
         pygame.draw.line(surface, GRID_COLOR, (0, y - offset.y), (WIDTH, y - offset.y))
 
-def generate_maze_obstacles(reference_pos):
+def generate_maze_obstacles(reference_pos, level=1):
     obstacles = []
     region_half = MAZE_REGION_SIZE // 2
     start_x = int(reference_pos.x - region_half)
@@ -49,10 +49,18 @@ def generate_maze_obstacles(reference_pos):
                     obstacles.append(Obstacle((x, y), (MAZE_CELL_SIZE, MAZE_CELL_SIZE)))
             y += MAZE_CELL_SIZE
         x += MAZE_CELL_SIZE
+    # For levels 4 & 5, add moving fire obstacles that drain life.
+    if level in [4, 5]:
+        for i in range(3):
+            fire_x = random.randint(start_x, end_x - MAZE_CELL_SIZE)
+            fire_y = random.randint(start_y, end_y - MAZE_CELL_SIZE)
+            fire = DynamicObstacle((fire_x, fire_y), (MAZE_CELL_SIZE, MAZE_CELL_SIZE), [(fire_x, fire_y), (fire_x + MAZE_CELL_SIZE, fire_y)], speed=2)
+            fire.is_fire = True  # Mark as fire obstacle.
+            obstacles.append(fire)
     return obstacles
 
-def reposition_maze_obstacles(obstacles, reference_pos):
-    return generate_maze_obstacles(reference_pos)
+def reposition_maze_obstacles(obstacles, reference_pos, level=1):
+    return generate_maze_obstacles(reference_pos, level)
 
 def spawn_zombie(player_pos, speed_multiplier=1.0):
     angle = random.uniform(0, 2 * math.pi)
