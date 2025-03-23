@@ -1,4 +1,3 @@
-# MapManager.py
 import pygame
 import math
 from constants import MAZE_CELL_SIZE, MAZE_REGION_SIZE
@@ -23,7 +22,8 @@ def line_of_sight_clear(start, end, obstacles):
         pos = start.lerp(end, i / steps)
         point = pygame.Rect(pos.x, pos.y, 1, 1)
         for obs in obstacles:
-            if obs.get_rect().colliderect(point):
+            # Use obs directly because it is a pygame.Rect.
+            if obs.colliderect(point):
                 return False
     return True
 
@@ -50,7 +50,7 @@ class MapManager:
                 cell_rect = pygame.Rect(cell_x, cell_y, self.cell_size, self.cell_size)
                 walkable = True
                 for obs in self.obstacles:
-                    if cell_rect.colliderect(obs.get_rect()):
+                    if cell_rect.colliderect(obs):
                         walkable = False
                         break
                 node = Node(cell_x + self.cell_size / 2, cell_y + self.cell_size / 2, walkable, row, col)

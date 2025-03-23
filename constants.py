@@ -1,5 +1,6 @@
 # Asset paths
 PLAYER_IMAGE_PATH = "assets/player.png"
+GUN_COMPANION = "assets/survivor_idle.png"
 ZOMBIE_IMAGE_PATH = "assets/zombie.png"
 SPECIAL_ZOMBIE_IMAGE_PATH = "assets/special_zombie.png"
 
@@ -14,6 +15,7 @@ HEALTH_PACK_AMOUNT = 25
 AMMO_PACK_AMOUNT = 10
 BULLET_SPEED = 15
 BULLET_RANGE = 500
+BULLET_COLOR = (255, 255, 0) 
 
 # Maze settings
 MAZE_REGION_SIZE = 2000  

@@ -1,4 +1,3 @@
-# Zombie.py
 import pygame
 import math
 from constants import ZOMBIE_COLOR, ZOMBIE_SIZE, ZOMBIE_SPEED, COLLISION_THRESHOLD
@@ -36,7 +35,8 @@ class Zombie:
                 candidate_rect = pygame.Rect(candidate_pos.x - self.size // 2,
                                              candidate_pos.y - self.size // 2,
                                              self.size, self.size)
-                collision = any(candidate_rect.colliderect(obs.get_rect()) for obs in obstacles)
+                # Use obstacles directly (they are pygame.Rect objects)
+                collision = any(candidate_rect.colliderect(obs) for obs in obstacles)
                 if not collision:
                     self.pos = candidate_pos
                     self.path = []
@@ -44,13 +44,13 @@ class Zombie:
                     self.last_path_update = current_time
                 else:
                     # If collision, force A* path recalculation (subject to cooldown).
-                    if current_time - self.last_path_update > 500:
+                    if current_time - self.last_path_update > 500 and map_manager:
                         self.path = map_manager.astar(self.pos, player_pos)
                         self.path_index = 0
                         self.last_path_update = current_time
         else:
             # Use A* pathfinding if direct path is blocked.
-            if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500):
+            if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500) and map_manager:
                 self.path = map_manager.astar(self.pos, player_pos)
                 self.path_index = 0
                 self.last_path_update = current_time
@@ -66,11 +66,11 @@ class Zombie:
                     candidate_rect = pygame.Rect(candidate_pos.x - self.size // 2,
                                                  candidate_pos.y - self.size // 2,
                                                  self.size, self.size)
-                    collision = any(candidate_rect.colliderect(obs.get_rect()) for obs in obstacles)
+                    collision = any(candidate_rect.colliderect(obs) for obs in obstacles)
                     if not collision:
                         self.pos = candidate_pos
                     else:
-                        if current_time - self.last_path_update > 500:
+                        if current_time - self.last_path_update > 500 and map_manager:
                             self.path = map_manager.astar(self.pos, player_pos)
                             self.path_index = 0
                             self.last_path_update = current_time

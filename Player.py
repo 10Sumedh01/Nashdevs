@@ -1,4 +1,3 @@
-# Player.py
 import pygame
 import math
 from Bullet import Bullet
@@ -6,7 +5,7 @@ from constants import PLAYER_MAX_HEALTH, WIDTH, HEIGHT, PLAYER_SPEED, PLAYER_SIZ
 
 class Player:
     def __init__(self):
-        self.pos = pygame.Vector2(WIDTH // 2, HEIGHT // 2)
+        self.pos = pygame.Vector2(WIDTH//2, HEIGHT//2)
         self.speed = PLAYER_SPEED
         self.size = PLAYER_SIZE
         self.health = PLAYER_MAX_HEALTH
@@ -46,13 +45,14 @@ class Player:
         return None
 
     def knife_attack(self, zombies):
-        # Define knife attack range (in pixels)
-        attack_range = 50
+    # Increase the knife attack range
+        attack_range = 80  # Changed from 50 to 80
         attacked = []
         for zombie in zombies:
             if (self.pos - zombie.pos).length() < attack_range:
                 attacked.append(zombie)
         return attacked
+
 
     def update(self, obstacles):
         keys = pygame.key.get_pressed()
@@ -72,7 +72,8 @@ class Player:
         old_pos = self.pos.copy()
         self.pos += move
         for obs in obstacles:
-            if self.get_rect().colliderect(obs.get_rect()):
+            # Use obs directly since obstacles are pygame.Rect objects.
+            if self.get_rect().colliderect(obs):
                 self.pos = old_pos
                 break
 
@@ -82,8 +83,8 @@ class Player:
             self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
 
     def get_rect(self):
-        return pygame.Rect(self.pos.x - self.size // 2,
-                           self.pos.y - self.size // 2,
+        return pygame.Rect(self.pos.x - self.size//2,
+                           self.pos.y - self.size//2,
                            self.size, self.size)
 
     def draw(self, surface, offset, current_level=1):
@@ -97,11 +98,11 @@ class Player:
         img_rect = rotated_image.get_rect(center=(self.pos.x - offset.x, self.pos.y - offset.y))
         surface.blit(rotated_image, img_rect)
         
-        # Flashlight effect remains unchanged.
+        # Flashlight effect
         flashlight_radius = 300
         mask = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
         mask.fill((0, 0, 0, 200))
-        pygame.draw.circle(mask, (0, 0, 0, 0),
-                           (int(self.pos.x - offset.x), int(self.pos.y - offset.y)),
+        pygame.draw.circle(mask, (0, 0, 0, 0), 
+                           (int(self.pos.x - offset.x), int(self.pos.y - offset.y)), 
                            flashlight_radius)
         surface.blit(mask, (0, 0))
