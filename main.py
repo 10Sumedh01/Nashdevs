@@ -18,7 +18,6 @@ from checkpoint import load_checkpoints, draw_checkpoints
 
 DYNAMIC_OBSTACLE_EVENT = pygame.USEREVENT + 2  # Not used in this version
 
-
 # -----------------------------
 # Main game loop
 # -----------------------------
@@ -107,10 +106,12 @@ def main():
                             bullets.append(bullet)
                     # Right-click: if in knife mode, perform knife attack.
                     elif event.button == 3 and player.has_knife:
+                        player.use_knife()  # Trigger knife attack animation.
                         attacked_zombies = player.knife_attack(zombies)
                         for z in attacked_zombies:
                             if z in zombies:
-                                if z.take_damage(999):  # Instant kill via knife.
+                                # Each knife hit does 50 damage; two blows kill a zombie.
+                                if z.take_damage(50, None):
                                     zombies.remove(z)
                                     kill_count += 1
                 if event.type == SPAWN_EVENT and not game_over and not level_complete:
@@ -120,7 +121,6 @@ def main():
                         zombies.append(spawn_zombie(player.pos, 1.0, tmx_data, collision_rects))
 
         if not game_over and not level_complete:
-            # Update player.
             player.update_rotation(world_mouse_pos)
             player.update(collision_rects)
             player.update_invincibility()
@@ -142,7 +142,6 @@ def main():
                             bullets.remove(bullet)
                         break
 
-            # Update companion and its bullets if visible.
             if show_companion:
                 companion.update(player, zombies, obstacles)
                 for bullet in companion.bullets[:]:
@@ -187,17 +186,17 @@ def main():
                     zombie.update(player.pos, collision_rects, None)
                 if player.get_rect().colliderect(zombie.get_rect()):
                     player.take_damage(10)
+            zombies.extend(new_zombies)
+
             if player.health <= 0:
                 game_over = True
 
             # Activate checkpoint when kill count reaches threshold.
             if kill_count >= 30 and not checkpoint_active and len(checkpoints) > 0:
                 checkpoint_active = True
-                active_checkpoint = checkpoints[0]  # Use the first checkpoint.
+                active_checkpoint = checkpoints[0]
 
-            # When checkpoint is active, stop spawning new zombies.
-            # (Zombie spawning is halted by not calling spawn events if checkpoint_active is True.)
-            # If player collides with the active checkpoint, show level complete overlay.
+            # When checkpoint is active, if player collides with it, show level complete overlay.
             if checkpoint_active and active_checkpoint:
                 if player.get_rect().colliderect(active_checkpoint["rect"]):
                     overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
@@ -228,7 +227,6 @@ def main():
                             pygame.quit()
                             sys.exit()
 
-        # Drawing section:
         screen.fill(DARK_RED)
         draw_map(screen, tmx_data, offset)
         draw_objects(screen, tmx_data, "props", offset)
@@ -251,7 +249,8 @@ def main():
 
         health_bar_width = 200
         pygame.draw.rect(screen, (255, 0, 0), (20, 20, health_bar_width, 20))
-        pygame.draw.rect(screen, (0, 255, 0), (20, 20, health_bar_width * (player.health / PLAYER_MAX_HEALTH), 20))
+        pygame.draw.rect(screen, (0, 255, 0),
+                         (20, 20, health_bar_width * (player.health / PLAYER_MAX_HEALTH), 20))
         ammo_text = font.render(f'AMMO: {player.ammo}', True, TEXT_COLOR)
         screen.blit(ammo_text, (20, 45))
         level_text = font.render(f'LEVEL: {current_level}', True, TEXT_COLOR)
