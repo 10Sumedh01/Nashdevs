@@ -1,4 +1,3 @@
-# main.py
 import pygame
 import random
 import sys
@@ -14,7 +13,7 @@ from Companion import Companion
 
 DYNAMIC_OBSTACLE_EVENT = pygame.USEREVENT + 2
 
-def draw_minimap(surface, map_manager, player, zombies, obstacles):
+def draw_minimap(surface, map_manager, player, zombies, obstacles, companion):
     # Define minimap dimensions and position (top-right corner)
     minimap_width = 200
     minimap_height = 200
@@ -24,21 +23,30 @@ def draw_minimap(surface, map_manager, player, zombies, obstacles):
     scale_x = minimap_width / map_manager.region_size
     scale_y = minimap_height / map_manager.region_size
     region_half = map_manager.region_size // 2
+    
     # Draw obstacles
     for obs in obstacles:
         rel_x = (obs.pos.x - (map_manager.reference_pos.x - region_half)) * scale_x
         rel_y = (obs.pos.y - (map_manager.reference_pos.y - region_half)) * scale_y
         obs_rect = pygame.Rect(rel_x, rel_y, obs.size[0] * scale_x, obs.size[1] * scale_y)
         pygame.draw.rect(minimap_surface, (100, 100, 100), obs_rect)
+    
     # Draw player position
     rel_x = (player.pos.x - (map_manager.reference_pos.x - region_half)) * scale_x
     rel_y = (player.pos.y - (map_manager.reference_pos.y - region_half)) * scale_y
     pygame.draw.circle(minimap_surface, (0, 255, 0), (int(rel_x), int(rel_y)), 5)
+    
     # Draw zombies
     for zombie in zombies:
         rel_x = (zombie.pos.x - (map_manager.reference_pos.x - region_half)) * scale_x
         rel_y = (zombie.pos.y - (map_manager.reference_pos.y - region_half)) * scale_y
         pygame.draw.circle(minimap_surface, (255, 0, 0), (int(rel_x), int(rel_y)), 5)
+    
+    # Draw companion position
+    rel_x = (companion.pos.x - (map_manager.reference_pos.x - region_half)) * scale_x
+    rel_y = (companion.pos.y - (map_manager.reference_pos.y - region_half)) * scale_y
+    pygame.draw.circle(minimap_surface, (0, 0, 255), (int(rel_x), int(rel_y)), 5)
+    
     # Blit minimap at top-right corner
     surface.blit(minimap_surface, (WIDTH - minimap_width - 10, 10))
 
@@ -61,13 +69,8 @@ def main():
     obstacles = generate_maze_obstacles(player.pos, level_manager.current_level)
     map_manager = MapManager(obstacles, player.pos)
 
-    # Create companion team (three AI survivors with unique abilities)
-    companions = [
-        Companion(player.pos + pygame.Vector2(60, 0), "gun"),
-        Companion(player.pos + pygame.Vector2(-60, 0), "knife"),
-        Companion(player.pos + pygame.Vector2(0, 60), "medic"),
-        Companion(player.pos + pygame.Vector2(0, -60), "bomb")
-    ]
+    # Create a single companion
+    companion = Companion(player.pos + pygame.Vector2(-60, 0), "gun")
 
     SPAWN_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(SPAWN_EVENT, SPAWN_INTERVAL)
@@ -119,8 +122,7 @@ def main():
                     if event.button == 3 and player.has_knife:
                         attacked = player.knife_attack(zombies)
                         for z in attacked:
-                            if z in zombies:
-                                zombies.remove(z)
+                            zombies.remove(z)
                 if event.type == SPAWN_EVENT and not game_over and not mini_game_active and not doctor_level_active:
                     zombies.append(spawn_zombie(player.pos, speed_multiplier=1.0))
 
@@ -143,20 +145,15 @@ def main():
                             if random.random() < 0.3:
                                 pickup_type = 'health' if random.random() < 0.5 else 'ammo'
                                 pickups.append(Pickup(zombie.pos.copy(), pickup_type))
-                        if bullet in bullets:
-                            bullets.remove(bullet)
+                        bullets.remove(bullet)
                         break
 
             for pickup in pickups[:]:
                 if (player.pos - pickup.pos).length() < player.size + pickup.size:
                     if pickup.type == 'health':
                         player.health = min(PLAYER_MAX_HEALTH, player.health + HEALTH_PACK_AMOUNT)
-                    elif pickup.type == 'ammo':
+                    else:
                         player.ammo += AMMO_PACK_AMOUNT
-                    elif pickup.type == 'antidote':
-                        pickups.remove(pickup)
-                        guidance = ai_helper.get_doctor_guidance("Guide the player to the helicopter")
-                        print("Doctor:", guidance)
                     pickups.remove(pickup)
 
             for zombie in zombies:
@@ -169,13 +166,27 @@ def main():
             for obs in obstacles:
                 if hasattr(obs, 'update'):
                     obs.update()
-                if hasattr(obs, 'is_fire'):
-                    if player.get_rect().colliderect(obs.get_rect()):
-                        player.take_damage(1)
 
-            # Update companions (all AI-controlled survivors)
-            for comp in companions:
-                comp.update(player, zombies, obstacles)
+            # Update companion
+            companion.update(player, zombies, obstacles)
+
+            # Update companion bullets
+            for bullet in companion.bullets[:]:
+                bullet.update()
+                bullet_rect = pygame.Rect(bullet.pos.x - bullet.size, bullet.pos.y - bullet.size, bullet.size * 2, bullet.size * 2)
+                hit_obstacle = any(obs.get_rect().colliderect(bullet_rect) for obs in obstacles)
+                if hit_obstacle or bullet.distance_traveled > bullet.max_distance:
+                    companion.bullets.remove(bullet)
+                    continue
+                for zombie in zombies[:]:
+                    if (bullet.pos - zombie.pos).length() < zombie.size:
+                        if zombie.take_damage(50):
+                            zombies.remove(zombie)
+                            if random.random() < 0.3:
+                                pickup_type = 'health' if random.random() < 0.5 else 'ammo'
+                                pickups.append(Pickup(zombie.pos.copy(), pickup_type))
+                        companion.bullets.remove(bullet)
+                        break
 
             if level_manager.update_level():
                 obstacles = reposition_maze_obstacles(obstacles, player.pos, level_manager.current_level)
@@ -197,8 +208,7 @@ def main():
             zombie.draw(screen, offset)
         for bullet in bullets:
             bullet.draw(screen, offset)
-        for comp in companions:
-            comp.draw(screen, offset)
+        companion.draw(screen, offset)
         player.draw(screen, offset, current_level=level_manager.current_level)
 
         # UI: Health, Ammo, Level Display
@@ -211,7 +221,7 @@ def main():
         screen.blit(level_text, (WIDTH // 2 - 50, 20))
 
         # Draw minimap at top-right.
-        draw_minimap(screen, map_manager, player, zombies, obstacles)
+        draw_minimap(screen, map_manager, player, zombies, obstacles, companion)
 
         # Draw doctor's level mini-game overlay.
         if doctor_level_active:
