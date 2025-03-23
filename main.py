@@ -12,89 +12,16 @@ from utilityFunctions import load_map, load_collision_rects, draw_map, draw_obje
 from levelManager import LevelManager
 from Companion import Companion
 from MapManager import MapManager
+from spawn import find_safe_spawn, find_safe_spawn_zombie, spawn_zombie
+from minimap import draw_minimap
+from checkpoint import load_checkpoints, draw_checkpoints
 
 DYNAMIC_OBSTACLE_EVENT = pygame.USEREVENT + 2  # Not used in this version
 
-def find_safe_spawn(collision_rects, tmx_data):
-    """Find a safe spawn position for the player (avoiding collision rectangles)."""
-    map_width = tmx_data.width * tmx_data.tilewidth
-    map_height = tmx_data.height * tmx_data.tileheight
-    while True:
-        pos = pygame.Vector2(random.uniform(0, map_width), random.uniform(0, map_height))
-        spawn_rect = pygame.Rect(pos.x - PLAYER_SIZE/2, pos.y - PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE)
-        if not any(spawn_rect.colliderect(rect) for rect in collision_rects):
-            return pos
 
-def find_safe_spawn_zombie(collision_rects, tmx_data):
-    """Find a safe spawn position for a zombie (avoiding collision rectangles)."""
-    map_width = tmx_data.width * tmx_data.tilewidth
-    map_height = tmx_data.height * tmx_data.tileheight
-    while True:
-        pos = pygame.Vector2(random.uniform(0, map_width), random.uniform(0, map_height))
-        spawn_rect = pygame.Rect(pos.x - ZOMBIE_SIZE/2, pos.y - ZOMBIE_SIZE/2, ZOMBIE_SIZE, ZOMBIE_SIZE)
-        if not any(spawn_rect.colliderect(rect) for rect in collision_rects):
-            return pos
-
-def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rects=None):
-    """
-    Spawns a zombie using safe spawn logic if possible.
-    If tmx_data and collision_rects are provided, uses find_safe_spawn_zombie.
-    Otherwise, spawns relative to the player's position.
-    """
-    if tmx_data and collision_rects:
-        pos = find_safe_spawn_zombie(collision_rects, tmx_data)
-    else:
-        angle = random.uniform(0, 2 * math.pi)
-        distance = random.uniform(500, 800)
-        pos = pygame.Vector2(player_pos.x + math.cos(angle) * distance,
-                             player_pos.y + math.sin(angle) * distance)
-    from Zombie import Zombie  # Ensure your Zombie module is present
-    return Zombie(pos, speed_multiplier)
-
-def draw_minimap(surface, tmx_data, collision_rects, player, zombies, companion):
-    """
-    Draws a minimap at the top-right corner of the screen.
-    It scales the full map dimensions from the Tiled map and draws:
-      - Obstacles (from collision_rects) as gray rectangles,
-      - The player as a green circle,
-      - Zombies as red circles,
-      - The companion (if available) as a blue circle.
-    """
-    minimap_width = 200
-    minimap_height = 200
-    minimap_surface = pygame.Surface((minimap_width, minimap_height))
-    minimap_surface.fill((50, 50, 50))
-    
-    map_width = tmx_data.width * tmx_data.tilewidth
-    map_height = tmx_data.height * tmx_data.tileheight
-    scale_x = minimap_width / map_width
-    scale_y = minimap_height / map_height
-
-    # Draw obstacles.
-    for rect in collision_rects:
-        mini_rect = pygame.Rect(rect.x * scale_x, rect.y * scale_y, rect.width * scale_x, rect.height * scale_y)
-        pygame.draw.rect(minimap_surface, (100, 100, 100), mini_rect)
-    
-    # Draw player.
-    mini_player_x = int(player.pos.x * scale_x)
-    mini_player_y = int(player.pos.y * scale_y)
-    pygame.draw.circle(minimap_surface, (0, 255, 0), (mini_player_x, mini_player_y), 5)
-    
-    # Draw zombies.
-    for zombie in zombies:
-        mini_zombie_x = int(zombie.pos.x * scale_x)
-        mini_zombie_y = int(zombie.pos.y * scale_y)
-        pygame.draw.circle(minimap_surface, (255, 0, 0), (mini_zombie_x, mini_zombie_y), 5)
-    
-    # Draw companion if available.
-    if companion is not None:
-        mini_comp_x = int(companion.pos.x * scale_x)
-        mini_comp_y = int(companion.pos.y * scale_y)
-        pygame.draw.circle(minimap_surface, (0, 0, 255), (mini_comp_x, mini_comp_y), 5)
-    
-    # Blit minimap in top-right with a 10-pixel margin.
-    surface.blit(minimap_surface, (WIDTH - minimap_width - 10, 10))
-
+# -----------------------------
+# Main game loop
+# -----------------------------
 def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -103,12 +30,13 @@ def main():
     font = pygame.font.SysFont("Arial", 24)
     large_font = pygame.font.SysFont("Arial", 48)
 
-    # Load Tiled map and collision objects.
+    # Load the Tiled map, collision objects, and checkpoints.
     tmx_data = load_map()
     collision_rects = load_collision_rects(tmx_data)
+    checkpoints = load_checkpoints(tmx_data)
     print("Collision Rects:", collision_rects)  # Debug output
 
-    # Spawn player safely.
+    # Spawn the player safely.
     safe_pos = find_safe_spawn(collision_rects, tmx_data)
     player = Player()
     player.pos = safe_pos
@@ -117,27 +45,31 @@ def main():
     companion = Companion(player.pos + pygame.Vector2(60, 0), "gun")
     show_companion = False  # Initially, companion is hidden.
 
-    # Initialize level manager and map manager.
+    # Initialize level and map managers.
     level_manager = LevelManager()
     current_level = level_manager.current_level
-    # Obstacles remain fixed from the Tiled map.
-    obstacles = collision_rects  # Using collision objects as obstacles.
+    # Obstacles are taken from the Tiled map (collision objects).
+    obstacles = collision_rects
     map_manager = MapManager(obstacles, player.pos)
 
     zombies = []
     bullets = []
     pickups = []
+    kill_count = 0
+
+    # Checkpoint logic variables.
+    checkpoint_active = False
+    active_checkpoint = None
+    KILL_THRESHOLD = 30  # When kill count reaches 30, activate checkpoint.
 
     SPAWN_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(SPAWN_EVENT, SPAWN_INTERVAL)
 
-    start_ticks = pygame.time.get_ticks()
-    zombie_speed_multiplier = 1.0
-    kill_count = 0  # Count of kills (both player and companion)
-
     game_over = False
+    level_complete = False  # Flag for level completion overlay.
+
     while True:
-        dt = clock.tick(FPS) / 1000.0  # Delta time in seconds
+        dt = clock.tick(FPS) / 1000.0  # Delta time (seconds)
         current_time = pygame.time.get_ticks()
 
         # Camera offset: center on the player.
@@ -147,6 +79,7 @@ def main():
         mouse_pos = pygame.mouse.get_pos()
         world_mouse_pos = pygame.Vector2(mouse_pos) + offset
 
+        # Process events.
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -158,25 +91,40 @@ def main():
                 # Toggle companion visibility with C.
                 if event.key == K_c:
                     show_companion = not show_companion
-            if event.type == MOUSEBUTTONDOWN and not game_over:
-                # Left-click: shoot if not in knife mode.
-                if event.button == 1 and not player.has_knife:
-                    bullet = player.shoot(world_mouse_pos)
-                    if bullet:
-                        bullets.append(bullet)
-                # Right-click: if in knife mode, perform knife attack.
-                elif event.button == 3 and player.has_knife:
-                    attacked_zombies = player.knife_attack(zombies)
-                    for z in attacked_zombies:
-                        if z in zombies:
-                            if z.take_damage(999):  # Instant kill via knife attack.
-                                zombies.remove(z)
-                                kill_count += 1
-            if event.type == SPAWN_EVENT and not game_over:
-                zombies.append(spawn_zombie(player.pos, zombie_speed_multiplier, tmx_data, collision_rects))
-                zombies.append(spawn_zombie(player.pos, zombie_speed_multiplier, tmx_data, collision_rects))
+                # When level complete overlay is active, choose next level or quit.
+                if level_complete:
+                    if event.key == K_n:
+                        level_manager.current_level += 1
+                        current_level = level_manager.current_level
+                        kill_count = 0
+                        checkpoint_active = False
+                        active_checkpoint = None
+                        level_complete = False
+                    if event.key == K_q:
+                        pygame.quit()
+                        sys.exit()
+            if not level_complete and not game_over:
+                if event.type == MOUSEBUTTONDOWN:
+                    # Left-click: shoot if not in knife mode.
+                    if event.button == 1 and not player.has_knife:
+                        bullet = player.shoot(world_mouse_pos)
+                        if bullet:
+                            bullets.append(bullet)
+                    # Right-click: if in knife mode, perform knife attack.
+                    elif event.button == 3 and player.has_knife:
+                        attacked_zombies = player.knife_attack(zombies)
+                        for z in attacked_zombies:
+                            if z in zombies:
+                                if z.take_damage(999):  # Instant kill via knife.
+                                    zombies.remove(z)
+                                    kill_count += 1
+                if event.type == SPAWN_EVENT and not game_over and not level_complete:
+                    # Only spawn zombies if checkpoint is not active.
+                    if not checkpoint_active:
+                        zombies.append(spawn_zombie(player.pos, 1.0, tmx_data, collision_rects))
+                        zombies.append(spawn_zombie(player.pos, 1.0, tmx_data, collision_rects))
 
-        if not game_over:
+        if not game_over and not level_complete:
             # Update player.
             player.update_rotation(world_mouse_pos)
             player.update(collision_rects)
@@ -196,10 +144,11 @@ def main():
                             if random.random() < 0.3:
                                 pickup_type = 'health' if random.random() < 0.5 else 'ammo'
                                 pickups.append(Pickup(zombie.pos.copy(), pickup_type))
-                        bullets.remove(bullet)
+                        if bullet in bullets:
+                            bullets.remove(bullet)
                         break
 
-            # Update companion (if visible) and its bullets.
+            # Update companion and its bullets if visible.
             if show_companion:
                 companion.update(player, zombies, obstacles)
                 for bullet in companion.bullets[:]:
@@ -231,7 +180,7 @@ def main():
             new_zombies = []
             for zombie in zombies[:]:
                 if zombie.is_special:
-                    zombie.update(player.pos, obstacles, None)
+                    zombie.update(player.pos, collision_rects, None)
                     if (zombie.pos - player.pos).length() <= 150:
                         num_explode = 8
                         offset_distance = 30
@@ -239,11 +188,12 @@ def main():
                             angle = math.radians(i * (360 / num_explode))
                             spawn_offset = pygame.Vector2(math.cos(angle) * offset_distance,
                                                           math.sin(angle) * offset_distance)
-                            new_zombies.append(spawn_zombie(player.pos, zombie_speed_multiplier, tmx_data, collision_rects))
+                            new_zombies.append(spawn_zombie(player.pos, 1.0, tmx_data, collision_rects))
+                            kill_count += 1
                         zombies.remove(zombie)
                         continue
                 else:
-                    zombie.update(player.pos, obstacles, None)
+                    zombie.update(player.pos, collision_rects, None)
                 if player.get_rect().colliderect(zombie.get_rect()):
                     player.take_damage(10)
             zombies.extend(new_zombies)
@@ -251,14 +201,54 @@ def main():
             if player.health <= 0:
                 game_over = True
 
-            if level_manager.update_level():
-                current_level = level_manager.current_level
-                # Since obstacles are fixed from the Tiled map, we don't reposition them.
-                
+            # Activate checkpoint when kill count reaches threshold.
+            if kill_count >= 30 and not checkpoint_active and len(checkpoints) > 0:
+                checkpoint_active = True
+                active_checkpoint = checkpoints[0]  # Use the first checkpoint.
+
+            # When checkpoint is active, stop spawning new zombies.
+            # (Zombie spawning is halted by not calling spawn events if checkpoint_active is True.)
+            # If player collides with the active checkpoint, show level complete overlay.
+            if checkpoint_active and active_checkpoint:
+                if player.get_rect().colliderect(active_checkpoint["rect"]):
+                    overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+                    overlay.fill((0, 0, 0, 180))
+                    screen.blit(overlay, (0, 0))
+                    complete_text = large_font.render("LEVEL COMPLETE", True, TEXT_COLOR)
+                    screen.blit(complete_text, (WIDTH//2 - complete_text.get_width()//2, HEIGHT//2 - 100))
+                    next_text = font.render("Press N for Next Level", True, TEXT_COLOR)
+                    quit_text = font.render("Press Q to Quit", True, TEXT_COLOR)
+                    screen.blit(next_text, (WIDTH//2 - next_text.get_width()//2, HEIGHT//2))
+                    screen.blit(quit_text, (WIDTH//2 - quit_text.get_width()//2, HEIGHT//2 + 30))
+                    pygame.display.flip()
+                    waiting = True
+                    while waiting:
+                        for event in pygame.event.get():
+                            if event.type == QUIT:
+                                pygame.quit()
+                                sys.exit()
+                        keys = pygame.key.get_pressed()
+                        if keys[K_n]:
+                            level_manager.current_level += 1
+                            current_level = level_manager.current_level
+                            kill_count = 0
+                            checkpoint_active = False
+                            active_checkpoint = None
+                            waiting = False
+                        if keys[K_q]:
+                            pygame.quit()
+                            sys.exit()
+
         # Drawing section:
         screen.fill(DARK_RED)
         draw_map(screen, tmx_data, offset)
         draw_objects(screen, tmx_data, "props", offset)
+        if checkpoint_active and active_checkpoint:
+            if active_checkpoint["image"]:
+                cp_rect = active_checkpoint["rect"].move(-offset.x, -offset.y)
+                screen.blit(active_checkpoint["image"], cp_rect)
+            else:
+                pygame.draw.rect(screen, (255, 255, 0), active_checkpoint["rect"].move(-offset.x, -offset.y), 2)
 
         for bullet in bullets:
             bullet.draw(screen, offset)
@@ -291,7 +281,7 @@ def main():
 
         if game_over:
             game_over_text = large_font.render("GAME OVER - Press R to Restart", True, TEXT_COLOR)
-            screen.blit(game_over_text, (WIDTH // 2 - game_over_text.get_width() // 2, HEIGHT // 2))
+            screen.blit(game_over_text, (WIDTH//2 - game_over_text.get_width()//2, HEIGHT//2))
             pygame.display.flip()
             waiting = True
             while waiting:
