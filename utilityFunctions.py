@@ -7,6 +7,8 @@ from constants import (
     MAZE_CELL_SIZE, MAZE_FILL_PROB, MAZE_REGION_SIZE, MIN_SPAWN_DIST,
     SAFE_ZONE_MARGIN, SPECIAL_ZOMBIE_IMMOBILE_DURATION, SPECIAL_ZOMBIE_PROXIMITY_RADIUS, WIDTH
 )
+from Zombie import Zombie
+from PoliceZombie import PoliceZombie  # Add this import
 
 def load_map():
     """
@@ -97,8 +99,26 @@ def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None):
         distance = random.uniform(MIN_SPAWN_DIST, MIN_SPAWN_DIST + 300)
         spawn_x = player_pos.x + math.cos(angle) * distance
         spawn_y = player_pos.y + math.sin(angle) * distance
-    from Zombie import Zombie  # Ensure your Zombie module is present
+    
     return Zombie((spawn_x, spawn_y), speed_multiplier)
+
+def spawn_PoliceZombie(player_pos, speed_multiplier=1.0, tmx_data=None):
+    """
+    Spawn a zombie at a random location within the map boundaries.
+    If tmx_data is provided, use the map dimensions.
+    """
+    if tmx_data:
+        map_width = tmx_data.width * tmx_data.tilewidth
+        map_height = tmx_data.height * tmx_data.tileheight
+        spawn_x = random.uniform(0, map_width)
+        spawn_y = random.uniform(0, map_height)
+    else:
+        angle = random.uniform(0, 2 * math.pi)
+        distance = random.uniform(MIN_SPAWN_DIST, MIN_SPAWN_DIST + 300)
+        spawn_x = player_pos.x + math.cos(angle) * distance
+        spawn_y = player_pos.y + math.sin(angle) * distance
+    
+    return PoliceZombie((spawn_x, spawn_y), speed_multiplier)
 
 def spawn_special_zombie(player_pos, speed_multiplier=1.0, level=1, tmx_data=None):
     """

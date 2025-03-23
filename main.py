@@ -4,11 +4,11 @@ import random
 import math
 from pygame.locals import *
 from constants import (WIDTH, HEIGHT, FPS, SPAWN_INTERVAL, COLLISION_THRESHOLD, 
-                       TEXT_COLOR, DARK_RED, PLAYER_MAX_HEALTH, PLAYER_SIZE, 
-                       BULLET_RANGE, HEALTH_PACK_AMOUNT, AMMO_PACK_AMOUNT, ZOMBIE_SIZE)
+                        TEXT_COLOR, DARK_RED, PLAYER_MAX_HEALTH, PLAYER_SIZE, 
+                        BULLET_RANGE, HEALTH_PACK_AMOUNT, AMMO_PACK_AMOUNT, ZOMBIE_SIZE)
 from Player import Player
 from Pickup import Pickup
-from utilityFunctions import load_map, load_collision_rects, draw_map, draw_objects, spawn_zombie, spawn_special_zombie
+from utilityFunctions import load_map, load_collision_rects, draw_map, draw_objects, spawn_PoliceZombie, spawn_zombie, spawn_special_zombie
 from levelManager import LevelManager
 from Companion import Companion
 from MapManager import MapManager

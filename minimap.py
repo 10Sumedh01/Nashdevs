@@ -9,7 +9,8 @@ def draw_minimap(surface, tmx_data, collision_rects, player, zombies, companion)
       - Obstacles (from collision_rects) as gray rectangles,
       - The player as a green circle,
       - Zombies as red circles,
-      - The companion as a blue circle if available.
+      - The companion as a blue circle if available,
+      - Checkpoints as yellow rectangles.
     """
     minimap_width = 200
     minimap_height = 200
@@ -35,5 +36,5 @@ def draw_minimap(surface, tmx_data, collision_rects, player, zombies, companion)
     if companion is not None:
         mini_comp = (int(companion.pos.x * scale_x), int(companion.pos.y * scale_y))
         pygame.draw.circle(minimap_surface, (0, 0, 255), mini_comp, 5)
-    
+
     surface.blit(minimap_surface, (WIDTH - minimap_width - 10, 10))
