@@ -93,7 +93,7 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="3" x="364" y="344" width="88" height="192">
+  <object id="3" x="364" y="344" width="66" height="192">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -108,14 +108,26 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="6" x="160" y="1244" width="136" height="84">
+  <object id="6" x="180" y="1244" width="116" height="84">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="7" x="0" y="1316" width="60" height="72"/>
-  <object id="8" x="-4" y="1388" width="184" height="376"/>
-  <object id="9" x="152" y="1840" width="40" height="60"/>
+  <object id="7" x="0" y="1332" width="46" height="40">
+   <properties>
+    <property name="collidable" value="true"/>
+   </properties>
+  </object>
+  <object id="8" x="-4" y="1418" width="150" height="346">
+   <properties>
+    <property name="collidable" value="true"/>
+   </properties>
+  </object>
+  <object id="9" x="160" y="1851.33" width="40" height="43.3333">
+   <properties>
+    <property name="collidable" value="true"/>
+   </properties>
+  </object>
   <object id="10" x="1024" y="1020" width="216" height="796">
    <properties>
     <property name="collidable" value="true"/>
@@ -226,12 +238,12 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="32" x="3000" y="1340" width="140" height="180">
+  <object id="32" x="3000" y="1356" width="118" height="142">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="33" x="244" y="1544" width="532" height="368">
+  <object id="33" x="254" y="1544" width="522" height="368">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -246,7 +258,11 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="36" x="40" y="796" width="80" height="156"/>
+  <object id="36" x="40" y="796" width="80" height="156">
+   <properties>
+    <property name="collidable" value="true"/>
+   </properties>
+  </object>
   <object id="37" x="2488" y="504" width="96" height="104">
    <properties>
     <property name="collidable" value="true"/>

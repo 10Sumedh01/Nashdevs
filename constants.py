@@ -8,7 +8,13 @@ ZOMBIE_IMAGE_PATH = "assets/zombie.png"
 SPECIAL_ZOMBIE_IMAGE_PATH = "assets/special_zombie.png"
 HEALTH_KIT_IMAGE = "assets/hk.png"             # Health kit asset
 AMMO_KIT_IMAGE = "assets/ammo.png"             # Ammo kit asset
-
+PLAYER_PISTOL_IMAGE_PATH = "assets/player_pistol.png"
+PLAYER_SHOTGUN_IMAGE_PATH = "assets/player_shotgun.png"
+PLAYER_AKM_IMAGE_PATH = "assets/player_akm.png"
+PISTOL_IMAGE_PATH = "assets/pistol.png"
+SHOTGUN_IMAGE_PATH = "assets/shotgun.png"
+AKM_IMAGE_PATH = "assets/akm.png"
+KNIFE_IMAGE_PATH = "assets/knife.png"
 # --- Constants ---
 WIDTH = 1280      # Window width
 HEIGHT = 720      # Window height

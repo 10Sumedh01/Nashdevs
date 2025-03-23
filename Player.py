@@ -1,6 +1,11 @@
 import pygame
 import math
-from constants import PLAYER_IMAGE_PATH, EXKNIFE_IMAGE, PLAYER_SIZE, PLAYER_MAX_HEALTH, PLAYER_START_AMMO, BULLET_RANGE
+import random
+from constants import (
+    PLAYER_MAX_HEALTH, PLAYER_START_AMMO, BULLET_RANGE, PLAYER_SIZE,
+    PLAYER_PISTOL_IMAGE_PATH, PLAYER_SHOTGUN_IMAGE_PATH, PLAYER_AKM_IMAGE_PATH,
+    PISTOL_IMAGE_PATH, SHOTGUN_IMAGE_PATH, AKM_IMAGE_PATH, EXKNIFE_IMAGE
+)
 from Bullet import Bullet
 
 class Player:
@@ -15,44 +20,120 @@ class Player:
         self.invincible_duration = 1000  # milliseconds
         self.last_hit = 0
 
-        # Load images:
-        # Gun mode image
-        self.gun_image = pygame.image.load(PLAYER_IMAGE_PATH).convert_alpha()
-        self.gun_image = pygame.transform.scale(self.gun_image, (PLAYER_SIZE, PLAYER_SIZE))
-        # Normal knife-holding image (when knife mode is active but not attacking)
-        self.knife_normal_image = pygame.image.load("assets/knifeplayer.png").convert_alpha()
-        self.knife_normal_image = pygame.transform.scale(self.knife_normal_image, (PLAYER_SIZE, PLAYER_SIZE))
-        # Knife attack image (for the brief attack animation)
-        self.knife_attack_image = pygame.image.load(EXKNIFE_IMAGE).convert_alpha()
-        self.knife_attack_image = pygame.transform.scale(self.knife_attack_image, (PLAYER_SIZE, PLAYER_SIZE))
+        # Gun modes: pistol, shotgun, akm.
+        self.gun_modes = ['pistol', 'shotgun', 'akm']
+        self.current_gun_index = 0
+        self.gun_mode = self.gun_modes[self.current_gun_index]
         
-        # Start in gun mode
-        self.has_knife = False  
-        self.current_image = self.gun_image
+        # Load images for player sprite.
+        self.pistol_image = pygame.image.load(PLAYER_PISTOL_IMAGE_PATH).convert_alpha()
+        self.pistol_image = pygame.transform.scale(self.pistol_image, (PLAYER_SIZE, PLAYER_SIZE))
+        
+        self.shotgun_image = pygame.image.load(PLAYER_SHOTGUN_IMAGE_PATH).convert_alpha()
+        self.shotgun_image = pygame.transform.scale(self.shotgun_image, (PLAYER_SIZE, PLAYER_SIZE))
+        
+        self.akm_image = pygame.image.load(PLAYER_AKM_IMAGE_PATH).convert_alpha()
+        self.akm_image = pygame.transform.scale(self.akm_image, (PLAYER_SIZE, PLAYER_SIZE))
+        
+        # Load arsenal images (for display in the arsenal rectangle).
+        self.pistol_arsenal = pygame.image.load(PISTOL_IMAGE_PATH).convert_alpha()
+        self.pistol_arsenal = pygame.transform.scale(self.pistol_arsenal, (50, 50))
+        
+        self.shotgun_arsenal = pygame.image.load(SHOTGUN_IMAGE_PATH).convert_alpha()
+        self.shotgun_arsenal = pygame.transform.scale(self.shotgun_arsenal, (50, 50))
+        
+        self.akm_arsenal = pygame.image.load(AKM_IMAGE_PATH).convert_alpha()
+        self.akm_arsenal = pygame.transform.scale(self.akm_arsenal, (50, 50))
+        
+        # Set initial images.
+        self.current_image = self.pistol_image
+        self.arsenal_img = self.pistol_arsenal
+        
+        # For collision/position.
         self.rect = self.current_image.get_rect(center=self.pos)
         
-        # Knife attack animation parameters
+        # Knife attributes.
+        self.has_knife = False
+        self.knife_normal_image = pygame.image.load("assets/knifeplayer.png").convert_alpha()
+        self.knife_normal_image = pygame.transform.scale(self.knife_normal_image, (PLAYER_SIZE, PLAYER_SIZE))
+        self.knife_attack_image = pygame.image.load(EXKNIFE_IMAGE).convert_alpha()
+        self.knife_attack_image = pygame.transform.scale(self.knife_attack_image, (PLAYER_SIZE, PLAYER_SIZE))
         self.knife_attack_active = False
         self.knife_attack_duration = 200  # milliseconds
         self.knife_attack_start = 0
 
     def toggle_knife(self):
-        """Toggle between gun mode and knife mode.
-           When toggled to knife mode, display the normal knife-holding image."""
         self.has_knife = not self.has_knife
-        self.current_image = self.knife_normal_image if self.has_knife else self.gun_image
+        if not self.has_knife:
+            self.current_image = self.get_gun_image()
+        else:
+            self.current_image = self.knife_normal_image
+
+    def switch_gun(self):
+        """Cycle to the next gun mode: pistol -> shotgun -> akm -> pistol."""
+        self.current_gun_index = (self.current_gun_index + 1) % len(self.gun_modes)
+        self.gun_mode = self.gun_modes[self.current_gun_index]
+        if not self.has_knife:
+            self.current_image = self.get_gun_image()
+        self.arsenal_img = self.get_arsenal_image()
+
+    def get_gun_image(self):
+        if self.gun_mode == 'pistol':
+            return self.pistol_image
+        elif self.gun_mode == 'shotgun':
+            return self.shotgun_image
+        elif self.gun_mode == 'akm':
+            return self.akm_image
+        else:
+            return self.pistol_image
+
+    def get_arsenal_image(self):
+        if self.gun_mode == 'pistol':
+            return self.pistol_arsenal
+        elif self.gun_mode == 'shotgun':
+            return self.shotgun_arsenal
+        elif self.gun_mode == 'akm':
+            return self.akm_arsenal
+        else:
+            return self.pistol_arsenal
+
+    def shoot(self, target_pos):
+        """Fire bullets based on the current gun mode."""
+        if self.ammo <= 0:
+            return None
+        if self.gun_mode == 'pistol':
+            self.ammo -= 1
+            direction = (target_pos - self.pos).normalize()
+            return Bullet(self.pos.copy(), direction)
+        elif self.gun_mode == 'shotgun':
+            self.ammo -= 1
+            bullets = []
+            base_direction = (target_pos - self.pos).normalize()
+            for angle_offset in [-15, 0, 15]:
+                rotated = base_direction.rotate(angle_offset)
+                bullets.append(Bullet(self.pos.copy(), rotated))
+            return bullets
+        elif self.gun_mode == 'akm':
+            self.ammo -= 1
+            bullets = []
+            base_direction = (target_pos - self.pos).normalize()
+            for _ in range(5):
+                deviation = random.uniform(-2, 2)
+                rotated = base_direction.rotate(deviation)
+                bullets.append(Bullet(self.pos.copy(), rotated))
+            return bullets
+        else:
+            return None
 
     def use_knife(self):
-        """Activate the knife attack animation if in knife mode.
-           Temporarily set the sprite to the knife attack image."""
+        """Trigger knife attack animation."""
         if self.has_knife:
             self.knife_attack_active = True
             self.knife_attack_start = pygame.time.get_ticks()
             self.current_image = self.knife_attack_image
 
     def knife_attack(self, zombies):
-        """Return a list of zombies within 80 pixels.
-           Iterates over a copy of the zombie list to avoid crashes."""
+        """Return a list of zombies within 80 pixels for knife attack."""
         attack_range = 80
         attacked = []
         for z in list(zombies):
@@ -60,16 +141,7 @@ class Player:
                 attacked.append(z)
         return attacked
 
-    def shoot(self, target_pos):
-        """Example shooting method (not used in knife mode)."""
-        if self.ammo > 0:
-            self.ammo -= 1
-            direction = (target_pos - self.pos).normalize()
-            return Bullet(self.pos.copy(), direction)
-        return None
-
     def take_damage(self, damage):
-        """Reduces player health if not invincible, and triggers invincibility."""
         if not self.invincible:
             self.health = max(0, self.health - damage)
             self.invincible = True
@@ -92,21 +164,15 @@ class Player:
             move.y += self.speed
         if move.length() > 0:
             move = move.normalize() * self.speed
-
         old_pos = self.pos.copy()
         self.pos += move
-
-        # Check collisions with obstacles
         for obs in obstacles:
             if self.get_rect().colliderect(obs):
                 self.pos = old_pos
                 break
-
-        # Revert knife attack image after duration
         if self.knife_attack_active and pygame.time.get_ticks() - self.knife_attack_start >= self.knife_attack_duration:
-            self.current_image = self.knife_normal_image if self.has_knife else self.gun_image
+            self.current_image = self.knife_normal_image if self.has_knife else self.get_gun_image()
             self.knife_attack_active = False
-
         self.rect = self.current_image.get_rect(center=self.pos)
 
     def update_rotation(self, target_pos):
@@ -120,6 +186,6 @@ class Player:
                            self.size, self.size)
 
     def draw(self, surface, offset, current_level=None):
-        rotated_image = pygame.transform.rotate(self.current_image, self.angle)
-        rect = rotated_image.get_rect(center=self.pos - offset)
-        surface.blit(rotated_image, rect.topleft)
+        rotated = pygame.transform.rotate(self.current_image, self.angle)
+        rect = rotated.get_rect(center=self.pos - offset)
+        surface.blit(rotated, rect.topleft)

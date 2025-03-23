@@ -1,9 +1,6 @@
-# spawn.py
 import pygame
 import random
 import math
-from ArmyZombie import ArmyZombie
-from PoliceZombie import PoliceZombie
 from constants import PLAYER_SIZE, ZOMBIE_SIZE
 
 def find_safe_spawn(collision_rects, tmx_data):
@@ -36,7 +33,7 @@ def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rect
     If tmx_data and collision_rects are provided, uses find_safe_spawn_zombie.
     Otherwise, spawns relative to the player's position.
     """
-    if tmx_data and collision_rects:
+    if tmx_data is not None and collision_rects is not None:
         pos = find_safe_spawn_zombie(collision_rects, tmx_data)
     else:
         angle = random.uniform(0, 2 * math.pi)
@@ -44,10 +41,13 @@ def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rect
         pos = pygame.Vector2(player_pos.x + math.cos(angle) * distance,
                              player_pos.y + math.sin(angle) * distance)
     from Zombie import Zombie  # Lazy import
+    # Example: Randomly spawn one of three types of zombies.
     rand_value = random.random()
-    if rand_value < 1/3:  # 1/3 chance to spawn a normal Zombie
+    if rand_value < 1/3:
         return Zombie(pos, speed_multiplier)
-    elif rand_value < 2/3:  # 1/3 chance to spawn a PoliceZombie
+    elif rand_value < 2/3:
+        from PoliceZombie import PoliceZombie
         return PoliceZombie(pos, speed_multiplier)
-    else:  # 1/3 chance to spawn an ArmyZombie
+    else:
+        from ArmyZombie import ArmyZombie
         return ArmyZombie(pos, speed_multiplier)
