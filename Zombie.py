@@ -19,7 +19,7 @@ class Zombie:
         self.original_image = pygame.transform.scale(self.original_image, (self.size, self.size))
         self.image = self.original_image
 
-    def take_damage(self, damage):
+    def take_damage(self, damage, game=None):
         self.health -= damage
         return self.health <= 0
 
@@ -35,7 +35,6 @@ class Zombie:
                 candidate_rect = pygame.Rect(candidate_pos.x - self.size // 2,
                                              candidate_pos.y - self.size // 2,
                                              self.size, self.size)
-                # Use obstacles directly (they are pygame.Rect objects)
                 collision = any(candidate_rect.colliderect(obs) for obs in obstacles)
                 if not collision:
                     self.pos = candidate_pos
@@ -43,13 +42,11 @@ class Zombie:
                     self.path_index = 0
                     self.last_path_update = current_time
                 else:
-                    # If collision, force A* path recalculation (subject to cooldown).
                     if current_time - self.last_path_update > 500 and map_manager:
                         self.path = map_manager.astar(self.pos, player_pos)
                         self.path_index = 0
                         self.last_path_update = current_time
         else:
-            # Use A* pathfinding if direct path is blocked.
             if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500) and map_manager:
                 self.path = map_manager.astar(self.pos, player_pos)
                 self.path_index = 0

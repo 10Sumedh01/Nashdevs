@@ -1,23 +1,30 @@
+# constants.py
+
 # Asset paths
 PLAYER_IMAGE_PATH = "assets/player.png"
+EXKNIFE_IMAGE = "assets/exknife.png"         # Extended arm asset for knife attack
 GUN_COMPANION = "assets/survivor_idle.png"
 ZOMBIE_IMAGE_PATH = "assets/zombie.png"
 SPECIAL_ZOMBIE_IMAGE_PATH = "assets/special_zombie.png"
+HEALTH_KIT_IMAGE = "assets/hk.png"             # Health kit asset
+AMMO_KIT_IMAGE = "assets/ammo.png"             # Ammo kit asset
 
 # --- Constants ---
-WIDTH = 1280 #800
-HEIGHT = 720 #600
+WIDTH = 1280      # Window width
+HEIGHT = 720      # Window height
 FPS = 60
 GRID_SPACING = 100
+
 PLAYER_MAX_HEALTH = 100
 PLAYER_START_AMMO = 20
 HEALTH_PACK_AMOUNT = 25
 AMMO_PACK_AMOUNT = 10
+
 BULLET_SPEED = 15
 BULLET_RANGE = 500
-BULLET_COLOR = (255, 255, 0) 
+BULLET_COLOR = (255, 255, 0)
 
-# Maze settings
+# Maze and level settings (as per original)
 MAZE_REGION_SIZE = 2000  
 MAZE_CELL_SIZE = 200     
 MAZE_FILL_PROB = 0.3     

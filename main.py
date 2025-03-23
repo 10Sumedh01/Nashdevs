@@ -35,12 +35,12 @@ def find_safe_spawn_zombie(collision_rects, tmx_data):
         if not any(spawn_rect.colliderect(rect) for rect in collision_rects):
             return pos
 
-def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rects=None):
+def spawn_zombie_wrapper(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rects=None):
     """
     Spawns a zombie using safe spawn logic if possible.
-    If tmx_data and collision_rects are provided, uses find_safe_spawn_zombie.
-    Otherwise, spawns relative to the player's position.
+    In initial levels, spawns fewer zombies.
     """
+    from Zombie import Zombie
     if tmx_data and collision_rects:
         pos = find_safe_spawn_zombie(collision_rects, tmx_data)
     else:
@@ -48,14 +48,13 @@ def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rect
         distance = random.uniform(500, 800)
         pos = pygame.Vector2(player_pos.x + math.cos(angle) * distance,
                              player_pos.y + math.sin(angle) * distance)
-    from Zombie import Zombie  # Ensure your Zombie module is present
     return Zombie(pos, speed_multiplier)
 
 def draw_minimap(surface, tmx_data, collision_rects, player, zombies, companion):
     """
     Draws a minimap at the top-right corner of the screen.
     It scales the full map dimensions from the Tiled map and draws:
-      - Obstacles (from collision_rects) as gray rectangles,
+      - Obstacles as gray rectangles,
       - The player as a green circle,
       - Zombies as red circles,
       - The companion (if available) as a blue circle.
@@ -70,29 +69,21 @@ def draw_minimap(surface, tmx_data, collision_rects, player, zombies, companion)
     scale_x = minimap_width / map_width
     scale_y = minimap_height / map_height
 
-    # Draw obstacles.
     for rect in collision_rects:
         mini_rect = pygame.Rect(rect.x * scale_x, rect.y * scale_y, rect.width * scale_x, rect.height * scale_y)
         pygame.draw.rect(minimap_surface, (100, 100, 100), mini_rect)
     
-    # Draw player.
-    mini_player_x = int(player.pos.x * scale_x)
-    mini_player_y = int(player.pos.y * scale_y)
-    pygame.draw.circle(minimap_surface, (0, 255, 0), (mini_player_x, mini_player_y), 5)
+    mini_player = (int(player.pos.x * scale_x), int(player.pos.y * scale_y))
+    pygame.draw.circle(minimap_surface, (0, 255, 0), mini_player, 5)
     
-    # Draw zombies.
     for zombie in zombies:
-        mini_zombie_x = int(zombie.pos.x * scale_x)
-        mini_zombie_y = int(zombie.pos.y * scale_y)
-        pygame.draw.circle(minimap_surface, (255, 0, 0), (mini_zombie_x, mini_zombie_y), 5)
+        mini_zombie = (int(zombie.pos.x * scale_x), int(zombie.pos.y * scale_y))
+        pygame.draw.circle(minimap_surface, (255, 0, 0), mini_zombie, 5)
     
-    # Draw companion if available.
     if companion is not None:
-        mini_comp_x = int(companion.pos.x * scale_x)
-        mini_comp_y = int(companion.pos.y * scale_y)
-        pygame.draw.circle(minimap_surface, (0, 0, 255), (mini_comp_x, mini_comp_y), 5)
+        mini_comp = (int(companion.pos.x * scale_x), int(companion.pos.y * scale_y))
+        pygame.draw.circle(minimap_surface, (0, 0, 255), mini_comp, 5)
     
-    # Blit minimap in top-right with a 10-pixel margin.
     surface.blit(minimap_surface, (WIDTH - minimap_width - 10, 10))
 
 def main():
@@ -103,47 +94,34 @@ def main():
     font = pygame.font.SysFont("Arial", 24)
     large_font = pygame.font.SysFont("Arial", 48)
 
-    # Load Tiled map and collision objects.
     tmx_data = load_map()
     collision_rects = load_collision_rects(tmx_data)
-    print("Collision Rects:", collision_rects)  # Debug output
-
-    # Spawn player safely.
+    print("Collision Rects:", collision_rects)
+    
     safe_pos = find_safe_spawn(collision_rects, tmx_data)
     player = Player()
     player.pos = safe_pos
 
-    # Create a single companion.
     companion = Companion(player.pos + pygame.Vector2(60, 0), "gun")
-    show_companion = False  # Initially, companion is hidden.
+    show_companion = False
 
-    # Initialize level manager and map manager.
     level_manager = LevelManager()
     current_level = level_manager.current_level
-    # Obstacles remain fixed from the Tiled map.
-    obstacles = collision_rects  # Using collision objects as obstacles.
+    obstacles = collision_rects
     map_manager = MapManager(obstacles, player.pos)
 
     zombies = []
     bullets = []
     pickups = []
+    kill_count = 0
 
     SPAWN_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(SPAWN_EVENT, SPAWN_INTERVAL)
 
-    start_ticks = pygame.time.get_ticks()
-    zombie_speed_multiplier = 1.0
-    kill_count = 0  # Count of kills (both player and companion)
-
     game_over = False
     while True:
-        dt = clock.tick(FPS) / 1000.0  # Delta time in seconds
-        current_time = pygame.time.get_ticks()
-
-        # Camera offset: center on the player.
+        dt = clock.tick(FPS) / 1000.0
         offset = pygame.Vector2(player.pos.x - WIDTH//2, player.pos.y - HEIGHT//2)
-
-        # Get mouse position in world coordinates.
         mouse_pos = pygame.mouse.get_pos()
         world_mouse_pos = pygame.Vector2(mouse_pos) + offset
 
@@ -152,37 +130,39 @@ def main():
                 pygame.quit()
                 sys.exit()
             if event.type == KEYDOWN:
-                # Toggle knife mode with E.
                 if event.key == K_e:
-                    player.has_knife = not player.has_knife
-                # Toggle companion visibility with C.
+                    player.toggle_knife()
                 if event.key == K_c:
                     show_companion = not show_companion
             if event.type == MOUSEBUTTONDOWN and not game_over:
-                # Left-click: shoot if not in knife mode.
                 if event.button == 1 and not player.has_knife:
                     bullet = player.shoot(world_mouse_pos)
                     if bullet:
                         bullets.append(bullet)
-                # Right-click: if in knife mode, perform knife attack.
                 elif event.button == 3 and player.has_knife:
+                    player.use_knife()
                     attacked_zombies = player.knife_attack(zombies)
                     for z in attacked_zombies:
                         if z in zombies:
-                            if z.take_damage(999):  # Instant kill via knife attack.
+                            if z.take_damage(50, None):  # Each knife blow does 50 damage
                                 zombies.remove(z)
                                 kill_count += 1
+                                if random.random() < 0.3:
+                                    pickups.append(Pickup(z.pos.copy(), random.choice(["health", "ammo"])))
             if event.type == SPAWN_EVENT and not game_over:
-                zombies.append(spawn_zombie(player.pos, zombie_speed_multiplier, tmx_data, collision_rects))
-                zombies.append(spawn_zombie(player.pos, zombie_speed_multiplier, tmx_data, collision_rects))
+                # In initial level(s), spawn fewer zombies
+                if current_level <= 1:
+                    if len(zombies) < 5:
+                        zombies.append(spawn_zombie_wrapper(player.pos, 1.0, tmx_data, collision_rects))
+                else:
+                    zombies.append(spawn_zombie_wrapper(player.pos, 1.0, tmx_data, collision_rects))
+                    zombies.append(spawn_zombie_wrapper(player.pos, 1.0, tmx_data, collision_rects))
 
         if not game_over:
-            # Update player.
             player.update_rotation(world_mouse_pos)
             player.update(collision_rects)
             player.update_invincibility()
 
-            # Update bullets.
             for bullet in bullets[:]:
                 bullet.update()
                 if bullet.distance_traveled > BULLET_RANGE:
@@ -190,16 +170,15 @@ def main():
                     continue
                 for zombie in zombies[:]:
                     if (bullet.pos - zombie.pos).length() < zombie.size:
-                        if zombie.take_damage(50):
+                        if zombie.take_damage(50, None):
                             zombies.remove(zombie)
                             kill_count += 1
                             if random.random() < 0.3:
-                                pickup_type = 'health' if random.random() < 0.5 else 'ammo'
-                                pickups.append(Pickup(zombie.pos.copy(), pickup_type))
-                        bullets.remove(bullet)
+                                pickups.append(Pickup(zombie.pos.copy(), random.choice(["health", "ammo"])))
+                        if bullet in bullets:
+                            bullets.remove(bullet)
                         break
 
-            # Update companion (if visible) and its bullets.
             if show_companion:
                 companion.update(player, zombies, obstacles)
                 for bullet in companion.bullets[:]:
@@ -209,57 +188,35 @@ def main():
                         continue
                     for zombie in zombies[:]:
                         if (bullet.pos - zombie.pos).length() < zombie.size:
-                            if zombie.take_damage(50):
+                            if zombie.take_damage(50, None):
                                 zombies.remove(zombie)
                                 kill_count += 1
                                 if random.random() < 0.3:
-                                    pickup_type = 'health' if random.random() < 0.5 else 'ammo'
-                                    pickups.append(Pickup(zombie.pos.copy(), pickup_type))
-                            companion.bullets.remove(bullet)
+                                    pickups.append(Pickup(zombie.pos.copy(), random.choice(["health", "ammo"])))
+                            if bullet in companion.bullets:
+                                companion.bullets.remove(bullet)
                             break
 
-            # Update pickups.
             for pickup in pickups[:]:
                 if (player.pos - pickup.pos).length() < player.size + pickup.size:
-                    if pickup.type == 'health':
+                    if pickup.type == "health":
                         player.health = min(PLAYER_MAX_HEALTH, player.health + HEALTH_PACK_AMOUNT)
                     else:
                         player.ammo += AMMO_PACK_AMOUNT
                     pickups.remove(pickup)
 
-            # Update zombies.
-            new_zombies = []
             for zombie in zombies[:]:
-                if zombie.is_special:
-                    zombie.update(player.pos, obstacles, None)
-                    if (zombie.pos - player.pos).length() <= 150:
-                        num_explode = 8
-                        offset_distance = 30
-                        for i in range(num_explode):
-                            angle = math.radians(i * (360 / num_explode))
-                            spawn_offset = pygame.Vector2(math.cos(angle) * offset_distance,
-                                                          math.sin(angle) * offset_distance)
-                            new_zombies.append(spawn_zombie(player.pos, zombie_speed_multiplier, tmx_data, collision_rects))
-                        zombies.remove(zombie)
-                        continue
-                else:
-                    zombie.update(player.pos, obstacles, None)
+                zombie.update(player.pos, obstacles, map_manager)
                 if player.get_rect().colliderect(zombie.get_rect()):
                     player.take_damage(10)
-            zombies.extend(new_zombies)
-
             if player.health <= 0:
                 game_over = True
-
             if level_manager.update_level():
                 current_level = level_manager.current_level
-                # Since obstacles are fixed from the Tiled map, we don't reposition them.
-                
-        # Drawing section:
+
         screen.fill(DARK_RED)
         draw_map(screen, tmx_data, offset)
         draw_objects(screen, tmx_data, "props", offset)
-
         for bullet in bullets:
             bullet.draw(screen, offset)
         for pickup in pickups:
@@ -270,21 +227,15 @@ def main():
             companion.draw(screen, offset)
         player.draw(screen, offset, current_level)
 
-        # UI Elements:
         health_bar_width = 200
         pygame.draw.rect(screen, (255, 0, 0), (20, 20, health_bar_width, 20))
-        pygame.draw.rect(screen, (0, 255, 0),
-                         (20, 20, health_bar_width * (player.health / PLAYER_MAX_HEALTH), 20))
-        # Draw ammo count below the health bar.
+        pygame.draw.rect(screen, (0, 255, 0), (20, 20, health_bar_width * (player.health / PLAYER_MAX_HEALTH), 20))
         ammo_text = font.render(f'AMMO: {player.ammo}', True, TEXT_COLOR)
         screen.blit(ammo_text, (20, 45))
-        # Draw level text next to the ammo count.
         level_text = font.render(f'LEVEL: {current_level}', True, TEXT_COLOR)
         screen.blit(level_text, (WIDTH // 2 - 50, 20))
-        # Draw kill count below ammo count.
         kill_text = font.render(f'KILLS: {kill_count}', True, TEXT_COLOR)
         screen.blit(kill_text, (20, 70))
-
         level_manager.draw_level_intro(screen, large_font)
         draw_minimap(screen, tmx_data, collision_rects, player, zombies, companion if show_companion else None)
         pygame.display.flip()
