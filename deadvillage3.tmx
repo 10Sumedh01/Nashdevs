@@ -12,10 +12,10 @@
    <properties>
     <property name="collidable" value="true"/>
    </properties>
-   <image source="../../../Downloads/car.png" width="128" height="128"/>
+   <image source="./assets/car.png" width="128" height="128"/>
   </tile>
   <tile id="1">
-   <image source="../../../Downloads/car.jpeg" width="512" height="512"/>
+   <image source="./assets/car.png" width="512" height="512"/>
   </tile>
  </tileset>
  <layer id="1" name="background" width="100" height="60">
