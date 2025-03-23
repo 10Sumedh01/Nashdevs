@@ -1,10 +1,14 @@
 import pygame, math
 from constants import PLAYER_SPEED, PLAYER_SIZE, PLAYER_MAX_HEALTH, HEALTH_PACK_AMOUNT, AMMO_PACK_AMOUNT, GUN_COMPANION
 from CompanionBullet import CompanionBullet
+from constants import PLAYER_SPEED, PLAYER_SIZE, PLAYER_MAX_HEALTH, HEALTH_PACK_AMOUNT, AMMO_PACK_AMOUNT, GUN_COMPANION
+from CompanionBullet import CompanionBullet
 
 class Companion:
     def __init__(self, pos, comp_type):
         self.pos = pygame.Vector2(pos)
+        self.speed = PLAYER_SPEED * 0.5  # slower speed to create lag effect
+        self.size = PLAYER_SIZE  # Set the size to be the same as the player's size
         self.speed = PLAYER_SPEED * 0.5  # slower speed to create lag effect
         self.size = PLAYER_SIZE  # Set the size to be the same as the player's size
         self.type = comp_type  # "gun", "knife", "medic", or "bomb"
@@ -48,7 +52,10 @@ class Companion:
                 if (closest.pos - self.pos).length() < 300:
                     bullet_direction = closest.pos - self.pos
                     self.bullets.append(CompanionBullet(self.pos, bullet_direction))
+                    bullet_direction = closest.pos - self.pos
+                    self.bullets.append(CompanionBullet(self.pos, bullet_direction))
                     self.last_action = current_time
+                    self.angle = math.degrees(math.atan2(bullet_direction.y, bullet_direction.x))
                     self.angle = math.degrees(math.atan2(bullet_direction.y, bullet_direction.x))
         elif self.type == "knife":
             # Perform knife attack on any zombie within 50 pixels.
@@ -72,6 +79,14 @@ class Companion:
                         zombies.remove(z)
                 self.last_action = current_time
 
+        # Update bullets
+        for bullet in self.bullets[:]:
+            bullet.update()
+            if bullet.distance_traveled > bullet.max_distance:
+                self.bullets.remove(bullet)
+
+        self.rect.center = (self.pos.x, self.pos.y)
+
         # Update companion bullets.
         for bullet in self.bullets[:]:
             bullet.update()
@@ -81,6 +96,12 @@ class Companion:
         self.rect.center = (self.pos.x, self.pos.y)
 
     def draw(self, surface, offset):
+        rotated_image = pygame.transform.rotate(self.original_image, -self.angle)
+        new_rect = rotated_image.get_rect(center=self.rect.center)
+        surface.blit(rotated_image, (self.pos.x - offset.x - new_rect.width // 2, self.pos.y - offset.y - new_rect.height // 2))
+        for bullet in self.bullets:
+            bullet.draw(surface, offset)
+
         rotated_image = pygame.transform.rotate(self.original_image, -self.angle)
         new_rect = rotated_image.get_rect(center=self.rect.center)
         surface.blit(rotated_image, (self.pos.x - offset.x - new_rect.width // 2, self.pos.y - offset.y - new_rect.height // 2))

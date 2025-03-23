@@ -196,8 +196,7 @@ def main():
                             if random.random() < 0.3:
                                 pickup_type = 'health' if random.random() < 0.5 else 'ammo'
                                 pickups.append(Pickup(zombie.pos.copy(), pickup_type))
-                        if bullet in bullets:
-                            bullets.remove(bullet)
+                        bullets.remove(bullet)
                         break
 
             # Update companion (if visible) and its bullets.
