@@ -3,45 +3,55 @@ import random
 import math
 from constants import PLAYER_SIZE, ZOMBIE_SIZE
 
-def find_safe_spawn(collision_rects, tmx_data):
+def load_spawn_zones(tmx_data):
     """
-    Find a safe spawn position for the player (avoiding collision rectangles).
+    Load spawn zones from the Tiled map's "spawn" layer.
+    Returns two lists: one for player spawn zones and one for zombie spawn zones.
+    Each zone is a pygame.Rect.
     """
-    map_width = tmx_data.width * tmx_data.tilewidth
-    map_height = tmx_data.height * tmx_data.tileheight
-    while True:
-        pos = pygame.Vector2(random.uniform(0, map_width), random.uniform(0, map_height))
-        spawn_rect = pygame.Rect(pos.x - PLAYER_SIZE/2, pos.y - PLAYER_SIZE/2, PLAYER_SIZE, PLAYER_SIZE)
-        if not any(spawn_rect.colliderect(rect) for rect in collision_rects):
-            return pos
+    player_zones = []
+    zombie_zones = []
+    try:
+        spawn_layer = tmx_data.get_layer_by_name("spawn")
+    except Exception as e:
+        print("Error: 'spawn' layer not found in map.", e)
+        return player_zones, zombie_zones
 
-def find_safe_spawn_zombie(collision_rects, tmx_data):
-    """
-    Find a safe spawn position for a zombie (avoiding collision rectangles).
-    """
-    map_width = tmx_data.width * tmx_data.tilewidth
-    map_height = tmx_data.height * tmx_data.tileheight
-    while True:
-        pos = pygame.Vector2(random.uniform(0, map_width), random.uniform(0, map_height))
-        spawn_rect = pygame.Rect(pos.x - ZOMBIE_SIZE/2, pos.y - ZOMBIE_SIZE/2, ZOMBIE_SIZE, ZOMBIE_SIZE)
-        if not any(spawn_rect.colliderect(rect) for rect in collision_rects):
-            return pos
+    for obj in spawn_layer:
+        # For zombie spawn zones:
+        if obj.properties.get("spawn_z") in [True, "true", "True"]:
+            # Create a rect using the object's x, y, width, and height.
+            zombie_zones.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
+        # For player spawn zones:
+        if obj.properties.get("spawn_p") in [True, "true", "True"]:
+            player_zones.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
+    return player_zones, zombie_zones
 
-def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rects=None):
+def random_point_in_rect(rect):
+    """Return a random point (pygame.Vector2) inside the given rect."""
+    x = random.uniform(rect.x, rect.x + rect.width)
+    y = random.uniform(rect.y, rect.y + rect.height)
+    return pygame.Vector2(x, y)
+
+def spawn_zombie(speed_multiplier=1.0, tmx_data=None):
     """
-    Spawns a zombie using safe spawn logic if possible.
-    If tmx_data and collision_rects are provided, uses find_safe_spawn_zombie.
-    Otherwise, spawns relative to the player's position.
+    Spawns a zombie from a random zombie spawn zone.
+    If spawn zones are not available, falls back to a random position.
     """
-    if tmx_data is not None and collision_rects is not None:
-        pos = find_safe_spawn_zombie(collision_rects, tmx_data)
-    else:
+    pos = None
+    if tmx_data:
+        _, zombie_zones = load_spawn_zones(tmx_data)
+        if zombie_zones:
+            zone = random.choice(zombie_zones)
+            pos = random_point_in_rect(zone)
+    if pos is None:
+        # Fallback: choose a random position relative to (0,0) (or adjust as needed)
         angle = random.uniform(0, 2 * math.pi)
         distance = random.uniform(500, 800)
-        pos = pygame.Vector2(player_pos.x + math.cos(angle) * distance,
-                             player_pos.y + math.sin(angle) * distance)
-    from Zombie import Zombie  # Lazy import
-    # Example: Randomly spawn one of three types of zombies.
+        pos = pygame.Vector2(math.cos(angle) * distance, math.sin(angle) * distance)
+
+    from Zombie import Zombie  # Lazy import for your normal Zombie
+    # Randomly choose between types of zombies (normal, police, army)
     rand_value = random.random()
     if rand_value < 1/3:
         return Zombie(pos, speed_multiplier)
@@ -51,3 +61,14 @@ def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None, collision_rect
     else:
         from ArmyZombie import ArmyZombie
         return ArmyZombie(pos, speed_multiplier)
+
+def find_player_spawn(tmx_data):
+    """
+    Finds a spawn position for the player from the spawn_p zones.
+    Falls back to (0,0) if none are found.
+    """
+    player_zones, _ = load_spawn_zones(tmx_data)
+    if player_zones:
+        zone = random.choice(player_zones)
+        return random_point_in_rect(zone)
+    return pygame.Vector2(0, 0)

@@ -14,7 +14,7 @@ from Companion import Companion
 from MapManager import MapManager
 from minimap import draw_minimap
 from checkpoint import load_checkpoints, draw_checkpoints
-from spawn import spawn_zombie, find_safe_spawn
+from spawn import spawn_zombie,find_player_spawn
 
 # Game states
 STATE_MENU = "menu"
@@ -37,7 +37,7 @@ def main():
     print("Collision Rects:", collision_rects)
 
     # Spawn the player safely.
-    safe_pos = find_safe_spawn(collision_rects, tmx_data)
+    safe_pos = find_player_spawn(tmx_data)
     player = Player(safe_pos)
 
     dead_sprite = pygame.image.load('assets/Dead_img.png').convert_alpha()
@@ -146,8 +146,8 @@ def main():
                 if event.type == SPAWN_EVENT:
                     # Only spawn zombies if spawning is active and we haven't reached the kill threshold
                     if spawn_zombies and objective_kills < KILL_THRESHOLD:
-                        zombies.append(spawn_zombie(player.pos, 1.0, tmx_data))
-                        zombies.append(spawn_zombie(player.pos, 1.0, tmx_data))
+                        zombies.append(spawn_zombie(1.0, tmx_data))
+                        zombies.append(spawn_zombie(1.0, tmx_data))
                         # Optionally, spawn special zombies if desired:
                         # if current_level >= 5:
                         #     zombies.append(spawn_special_zombie(player.pos, 1.0, current_level, tmx_data))
@@ -267,7 +267,7 @@ def main():
                         offset_distance = 30
                         for i in range(num_explode):
                             angle = math.radians(i * (360 / num_explode))
-                            new_zombies.append(spawn_zombie(player.pos, 1.0, tmx_data))
+                            new_zombies.append(spawn_zombie(1.0, tmx_data))
                             # Don't increment kill count for these spawned zombies
                         dead_zombies.append(zombie.pos.copy())
                         zombies.remove(zombie)

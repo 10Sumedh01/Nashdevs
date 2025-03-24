@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="60" tilewidth="32" tileheight="32" infinite="0" nextlayerid="4" nextobjectid="49">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="60" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="62">
  <tileset firstgid="1" name="background village" tilewidth="32" tileheight="32" tilecount="1500" columns="50">
   <image source="assets/bckg4.png" width="1600" height="960"/>
  </tileset>
@@ -88,17 +88,17 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="2" x="228" y="188" width="124" height="384">
+  <object id="2" x="228" y="248.606" width="124" height="323.394">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="3" x="364" y="344" width="66" height="192">
+  <object id="3" x="364" y="344" width="55.3333" height="192">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="4" x="520" y="244" width="158" height="208">
+  <object id="4" x="538" y="274" width="114" height="167">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -143,7 +143,7 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="13" x="730" y="-4" width="294" height="228">
+  <object id="13" x="760.667" y="-4" width="263.333" height="228">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -243,7 +243,7 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="33" x="254" y="1544" width="522" height="368">
+  <object id="33" x="278.485" y="1544" width="497.515" height="368">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -299,6 +299,68 @@
   <object id="47" x="2138" y="273.667" width="91" height="87">
    <properties>
     <property name="checkpoint" value="true"/>
+   </properties>
+  </object>
+ </objectgroup>
+ <objectgroup id="4" name="spawn">
+  <object id="49" x="200" y="836">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="50" x="482" y="1358">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="51" x="910" y="1442">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="52" x="362" y="628">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="53" x="400" y="86">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="54" x="1120" y="72">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="55" x="1986" y="392">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="56" x="2266" y="478">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="58" x="3138" y="1008">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="59" x="2856" y="1370">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="60" x="2342" y="1148">
+   <properties>
+    <property name="spawn_z" value="true"/>
+   </properties>
+  </object>
+  <object id="61" x="2688" y="678">
+   <properties>
+    <property name="spawn_p" value="true"/>
    </properties>
   </object>
  </objectgroup>
