@@ -1,3 +1,4 @@
+# Import the storyline module at the top of main.py
 import pygame
 import sys
 import random
@@ -15,9 +16,11 @@ from MapManager import MapManager
 from minimap import draw_minimap
 from checkpoint import load_checkpoints, draw_checkpoints
 from spawn import spawn_zombie,find_player_spawn
+from storyline import play_level_story  # Add this import
 
-# Game states
+# Game states - add a new STORYLINE state
 STATE_MENU = "menu"
+STATE_STORYLINE = "storyline"  # New state for storyline
 STATE_RUNNING = "running"
 STATE_LEVEL_COMPLETE = "level_complete"
 STATE_GAME_OVER = "game_over"
@@ -74,6 +77,9 @@ def main():
     
     # Flag to track if zombie spawning is active
     spawn_zombies = True
+    
+    # Flag to track if storyline has been shown for the current level
+    storyline_shown = False
 
     while True:
         dt = clock.tick(FPS) / 1000.0  # Delta time in seconds
@@ -88,7 +94,9 @@ def main():
             if state == STATE_MENU:
                 if event.type == KEYDOWN:
                     if event.key == K_s:  # Start game with 'S' key
-                        state = STATE_RUNNING
+                        # Show storyline first
+                        state = STATE_STORYLINE
+                        storyline_shown = False
                         # Reset objective kills and zombie spawning when starting a new level
                         objective_kills = 0
                         spawn_zombies = True
@@ -104,6 +112,10 @@ def main():
                     if event.key == K_q:  # Quit game with 'Q' key
                         pygame.quit()
                         sys.exit()
+            
+            elif state == STATE_STORYLINE:
+                # Event handling will be managed within the play_level_story function
+                pass
                         
             elif state == STATE_RUNNING:
                 # Camera offset: center on the player.
@@ -165,6 +177,8 @@ def main():
                         active_checkpoint = None
                         # Return to menu screen instead of running state
                         state = STATE_MENU
+                        # Reset storyline flag for the new level
+                        storyline_shown = False
                     if event.key == K_q:
                         pygame.quit()
                         sys.exit()
@@ -195,6 +209,21 @@ def main():
             screen.blit(ammo_text, (WIDTH // 2 - ammo_text.get_width() // 2, HEIGHT // 2 + 75))
             
             pygame.display.flip()
+            
+        # Storyline state - show the story slides for the current level
+        elif state == STATE_STORYLINE:
+            if not storyline_shown:
+                # Play the storyline for the current level
+                storyline_shown = True
+                if play_level_story(screen, current_level):
+                    # If storyline completes successfully, transition to the game
+                    state = STATE_RUNNING
+                else:
+                    # If storyline is skipped with Escape, go back to menu
+                    state = STATE_MENU
+            else:
+                # If storyline has already been shown, go directly to the game
+                state = STATE_RUNNING
 
         elif state == STATE_RUNNING:
             # Camera offset: center on the player.
@@ -227,6 +256,7 @@ def main():
                         if bullet in bullets:
                             bullets.remove(bullet)
                         break
+
 
             if show_companion:
                 companion.update(player, zombies, obstacles)
