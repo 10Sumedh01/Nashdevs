@@ -137,7 +137,7 @@ def main():
                         for z in attacked:
                             if z in zombies:
                                 if z.take_damage(999, None):  # Instant kill via knife.
-                                    dead_zombies.append(z.pos.copy())
+                                    dead_zombies.append((z.pos.copy(), pygame.time.get_ticks()))
                                     zombies.remove(z)
                                     total_kill_count += 1
                                     # Only count if we haven't reached the threshold
@@ -215,7 +215,7 @@ def main():
                 for zombie in zombies[:]:
                     if (bullet.pos - zombie.pos).length() < zombie.size:
                         if zombie.take_damage(50, None):
-                            dead_zombies.append(zombie.pos.copy())
+                            dead_zombies.append((zombie.pos.copy(), pygame.time.get_ticks()))
                             zombies.remove(zombie)
                             total_kill_count += 1
                             # Only increment objective_kills if we haven't reached the threshold
@@ -238,7 +238,7 @@ def main():
                     for zombie in zombies[:]:
                         if (bullet.pos - zombie.pos).length() < zombie.size:
                             if zombie.take_damage(50, None):
-                                dead_zombies.append(zombie.pos.copy())
+                                dead_zombies.append((zombie.pos.copy(), pygame.time.get_ticks()))
                                 zombies.remove(zombie)
                                 total_kill_count += 1
                                 # Only increment objective_kills if we haven't reached the threshold
@@ -318,8 +318,12 @@ def main():
             if show_companion:
                 companion.draw(screen, offset)
             player.draw(screen, offset, current_level)
-            for pos in dead_zombies:
-                screen.blit(dead_sprite, pos - offset - pygame.Vector2(50,20))
+            current_time = pygame.time.get_ticks()
+            for pos, death_time in dead_zombies[:]:
+                if current_time - death_time < 5000:  # 5 seconds
+                    screen.blit(dead_sprite, pos - offset - pygame.Vector2(50, 20))
+                else:
+                    dead_zombies.remove((pos, death_time))
 
             # Draw UI elements.
             pygame.draw.rect(screen, (255, 0, 0), (20, 20, 200, 20))
