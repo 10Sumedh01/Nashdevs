@@ -40,6 +40,8 @@ def main():
     safe_pos = find_safe_spawn(collision_rects, tmx_data)
     player = Player(safe_pos)
 
+    dead_sprite = pygame.image.load('assets/Dead_img.png').convert_alpha()
+
     # Create a single companion.
     companion = Companion(player.pos + pygame.Vector2(60, 0), "gun")
     show_companion = False
@@ -53,6 +55,7 @@ def main():
     zombies = []
     bullets = []
     pickups = []
+    dead_zombies = []
     
     # Track high score separately from objective kills
     total_kill_count = 0  # This is the high score/total kills
@@ -134,6 +137,7 @@ def main():
                         for z in attacked:
                             if z in zombies:
                                 if z.take_damage(999, None):  # Instant kill via knife.
+                                    dead_zombies.append(z.pos.copy())
                                     zombies.remove(z)
                                     total_kill_count += 1
                                     # Only count if we haven't reached the threshold
@@ -211,6 +215,7 @@ def main():
                 for zombie in zombies[:]:
                     if (bullet.pos - zombie.pos).length() < zombie.size:
                         if zombie.take_damage(50, None):
+                            dead_zombies.append(zombie.pos.copy())
                             zombies.remove(zombie)
                             total_kill_count += 1
                             # Only increment objective_kills if we haven't reached the threshold
@@ -233,6 +238,7 @@ def main():
                     for zombie in zombies[:]:
                         if (bullet.pos - zombie.pos).length() < zombie.size:
                             if zombie.take_damage(50, None):
+                                dead_zombies.append(zombie.pos.copy())
                                 zombies.remove(zombie)
                                 total_kill_count += 1
                                 # Only increment objective_kills if we haven't reached the threshold
@@ -263,6 +269,7 @@ def main():
                             angle = math.radians(i * (360 / num_explode))
                             new_zombies.append(spawn_zombie(player.pos, 1.0, tmx_data))
                             # Don't increment kill count for these spawned zombies
+                        dead_zombies.append(zombie.pos.copy())
                         zombies.remove(zombie)
                         total_kill_count += 1
                         # Only increment objective_kills if we haven't reached the threshold
@@ -311,6 +318,8 @@ def main():
             if show_companion:
                 companion.draw(screen, offset)
             player.draw(screen, offset, current_level)
+            for pos in dead_zombies:
+                screen.blit(dead_sprite, pos - offset - pygame.Vector2(50,20))
 
             # Draw UI elements.
             pygame.draw.rect(screen, (255, 0, 0), (20, 20, 200, 20))
