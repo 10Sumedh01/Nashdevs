@@ -32,9 +32,17 @@ def main():
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("Arial", 24)
     large_font = pygame.font.SysFont("Arial", 48)
-
+    current_level = 1
+    def load_specific_map(current_level):
+        if current_level <= 2:
+            return load_map()  # Original map (deadvillage.tmx)
+        elif current_level >= 3:
+            return load_map('deadcity.tmx')  # Specifically load deadcity map for level 3
+        else:
+            return load_map()  # Default map for other levels
     # Load the Tiled map, collision objects, and checkpoints.
-    tmx_data = load_map()
+
+    tmx_data = load_specific_map(current_level)
     collision_rects = load_collision_rects(tmx_data)
     checkpoints = load_checkpoints(tmx_data)
     print("Collision Rects:", collision_rects)
@@ -168,8 +176,16 @@ def main():
                 if event.type == KEYDOWN:
                     if event.key == K_n:
                         # Increment level by 1 (not continuous)
-                        level_manager.current_level += 1
-                        current_level = level_manager.current_level
+                        current_level += 1
+                        # Load new map based on new level
+                        tmx_data = load_specific_map(current_level)
+                        collision_rects = load_collision_rects(tmx_data)
+                        checkpoints = load_checkpoints(tmx_data)
+                        
+                        # Respawn player at new map's spawn point
+                        safe_pos = find_player_spawn(tmx_data)
+                        player = Player(safe_pos)
+                        
                         # Don't reset total kill count (high score)
                         # Reset objective kills for the new level
                         objective_kills = 0

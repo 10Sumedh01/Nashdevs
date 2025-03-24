@@ -10,13 +10,14 @@ from constants import (
 from Zombie import Zombie
 from PoliceZombie import PoliceZombie  # Add this import
 
-def load_map():
+def load_map(map_path=None):
     """
-    Load and return the Tiled map (deadvillage3.tmx).
-    Ensure that deadvillage3.tmx is in your working directory.
+    Load and return the Tiled map.
+    If no path is provided, use the default map.
     """
-    tmx_data = load_pygame("deadvillage3.tmx")
-    return tmx_data
+    if map_path is None:
+        map_path = "deadvillage3.tmx"  # Default map
+    return load_pygame(map_path)
 
 def load_collision_rects(tmx_data):
     """
