@@ -33,7 +33,7 @@ def random_point_in_rect(rect):
     y = random.uniform(rect.y, rect.y + rect.height)
     return pygame.Vector2(x, y)
 
-def spawn_zombie(speed_multiplier=1.0, tmx_data=None):
+def spawn_zombie(speed_multiplier=1.0, tmx_data=None,current_level=1):
     """
     Spawns a zombie from a random zombie spawn zone.
     If spawn zones are not available, falls back to a random position.
@@ -50,17 +50,29 @@ def spawn_zombie(speed_multiplier=1.0, tmx_data=None):
         distance = random.uniform(500, 800)
         pos = pygame.Vector2(math.cos(angle) * distance, math.sin(angle) * distance)
 
-    from Zombie import Zombie  # Lazy import for your normal Zombie
-    # Randomly choose between types of zombies (normal, police, army)
-    rand_value = random.random()
-    if rand_value < 1/3:
+    from Zombie import Zombie
+    from PoliceZombie import PoliceZombie
+    from ArmyZombie import ArmyZombie
+    # rand_value = random.random()
+    # if rand_value < 1/3:
+    #     return Zombie(pos, speed_multiplier)
+    # elif rand_value < 2/3:
+    #     from PoliceZombie import PoliceZombie
+    #     return PoliceZombie(pos, speed_multiplier)
+    # else:
+    #     from ArmyZombie import ArmyZombie
+    #     return ArmyZombie(pos, speed_multiplier)
+    
+    if current_level < 2:
         return Zombie(pos, speed_multiplier)
-    elif rand_value < 2/3:
-        from PoliceZombie import PoliceZombie
-        return PoliceZombie(pos, speed_multiplier)
     else:
-        from ArmyZombie import ArmyZombie
-        return ArmyZombie(pos, speed_multiplier)
+        rand_value = random.random()
+        if rand_value < 1/3:
+            return Zombie(pos, speed_multiplier)
+        elif rand_value < 2/3:
+            return PoliceZombie(pos, speed_multiplier)
+        else:
+            return ArmyZombie(pos, speed_multiplier)
 
 def find_player_spawn(tmx_data):
     """

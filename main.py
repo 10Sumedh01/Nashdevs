@@ -17,6 +17,7 @@ from minimap import draw_minimap
 from checkpoint import load_checkpoints, draw_checkpoints
 from spawn import spawn_zombie,find_player_spawn
 from storyline import play_level_story  # Add this import
+from doctor_minigame import minigame
 
 # Game states - add a new STORYLINE state
 STATE_MENU = "menu"
@@ -166,8 +167,8 @@ def main():
                 if event.type == SPAWN_EVENT:
                     # Only spawn zombies if spawning is active and we haven't reached the kill threshold
                     if spawn_zombies and objective_kills < KILL_THRESHOLD:
-                        zombies.append(spawn_zombie(1.0, tmx_data))
-                        zombies.append(spawn_zombie(1.0, tmx_data))
+                        zombies.append(spawn_zombie(1.0, tmx_data,current_level))
+                        zombies.append(spawn_zombie(1.0, tmx_data,current_level))
                         # Optionally, spawn special zombies if desired:
                         # if current_level >= 5:
                         #     zombies.append(spawn_special_zombie(player.pos, 1.0, current_level, tmx_data))
@@ -185,6 +186,11 @@ def main():
                         # Respawn player at new map's spawn point
                         safe_pos = find_player_spawn(tmx_data)
                         player = Player(safe_pos)
+
+                        # Check if the next level is the minigame level
+                        if current_level == 3:
+                            minigame()
+                            current_level += 1
                         
                         # Don't reset total kill count (high score)
                         # Reset objective kills for the new level
@@ -313,7 +319,7 @@ def main():
                         offset_distance = 30
                         for i in range(num_explode):
                             angle = math.radians(i * (360 / num_explode))
-                            new_zombies.append(spawn_zombie(1.0, tmx_data))
+                            new_zombies.append(spawn_zombie(1.0, tmx_data,current_level))
                             # Don't increment kill count for these spawned zombies
                         dead_zombies.append(zombie.pos.copy())
                         zombies.remove(zombie)
