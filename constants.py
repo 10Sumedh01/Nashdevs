@@ -52,7 +52,7 @@ TEXT_COLOR = (240, 240, 240)
 
 # Player settings
 PLAYER_SIZE = 75
-PLAYER_SPEED = 5
+PLAYER_SPEED = 10
 
 # Zombie settings
 BASE_ZOMBIE_SIZE = 77

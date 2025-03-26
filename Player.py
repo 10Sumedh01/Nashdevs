@@ -98,7 +98,10 @@ class Player:
             return self.pistol_arsenal
 
     def shoot(self, target_pos):
-        """Fire bullets based on the current gun mode."""
+        """Fire bullets based on the current gun mode.
+           If knife is active, do not shoot bullets."""
+        if self.has_knife:
+            return None
         if self.ammo <= 0:
             return None
         if self.gun_mode == 'pistol':
