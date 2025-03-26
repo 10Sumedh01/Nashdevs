@@ -15,10 +15,12 @@ from Companion import Companion
 from MapManager import MapManager
 from minimap import draw_minimap
 from checkpoint import load_checkpoints, draw_checkpoints
-from spawn import spawn_zombie,find_player_spawn
+from spawn import spawn_enemy,find_player_spawn
 from storyline import play_level_story  # Add this import
 from doctor_minigame import minigame
-
+from human import Human
+from rps import rock_paper_scissors_minigame
+from antidoteg import run_antidote_hunt
 # Game states - add a new STORYLINE state
 STATE_MENU = "menu"
 STATE_STORYLINE = "storyline"  # New state for storyline
@@ -35,14 +37,42 @@ def main():
     large_font = pygame.font.SysFont("Arial", 48)
     current_level = 1
     def load_specific_map(current_level):
-        if current_level <= 2:
-            return load_map()  # Original map (deadvillage.tmx)
-        elif current_level >= 3:
-            return load_map('deadcity.tmx')  # Specifically load deadcity map for level 3
+        """
+        Returns the appropriate TMX map based on current level.
+        Adjust the file names as needed.
+        - Level 1: Village map ("deadvillage3.tmx")
+        - Level 2: City map ("deadcity.tmx")
+        - Level 3: Doctor minigame (here we load "deadcity.tmx" as placeholder; 
+                    you can trigger a minigame state instead)
+        - Level 4: Room map ("theroom.tmx")
+        - Level 5: Doctor minigame again (placeholder)
+        - Level 6: HEAQ1 map ("heaq1.tmx")
+        - Level 7: HEAQ2 map ("heaq2.tmx")
+        - Level 8: RPS minigame (here we load the default map as placeholder)
+        - Else: default map.
+        """
+        if current_level == 1:
+            return load_map("deadvillage3.tmx")
+        elif current_level == 2:
+            return load_map("deadcity.tmx")
+        elif current_level == 3:
+            # Here you would trigger your doctor_minigame instead of a map,
+            # but as a placeholder, we load "deadcity.tmx"
+            return load_map("theroom.tmx")
+        elif current_level == 4:
+            return load_map("theroom.tmx")
+        elif current_level == 5:
+            # Placeholder for doctor minigame level 5; adjust as needed.
+            return load_map("heaq1.tmx")
+        elif current_level == 6:
+            return load_map("heaq1.tmx")
+        elif current_level == 7:
+            return load_map("heaq2.tmx")
+        elif current_level == 8:
+            # Placeholder for RPS minigame; load default map
+            return load_map("heaq2.tmx")
         else:
-            return load_map()  # Default map for other levels
-    # Load the Tiled map, collision objects, and checkpoints.
-
+            return load_map("deadvillage3.tmx")
     tmx_data = load_specific_map(current_level)
     collision_rects = load_collision_rects(tmx_data)
     checkpoints = load_checkpoints(tmx_data)
@@ -76,7 +106,7 @@ def main():
     # Checkpoint logic.
     checkpoint_active = False
     active_checkpoint = None
-    KILL_THRESHOLD = 30  # Activate checkpoint when kill count reaches 30
+    KILL_THRESHOLD = 5  # Activate checkpoint when kill count reaches 30
 
     SPAWN_EVENT = pygame.USEREVENT + 1
     pygame.time.set_timer(SPAWN_EVENT, SPAWN_INTERVAL)
@@ -167,8 +197,13 @@ def main():
                 if event.type == SPAWN_EVENT:
                     # Only spawn zombies if spawning is active and we haven't reached the kill threshold
                     if spawn_zombies and objective_kills < KILL_THRESHOLD:
-                        zombies.append(spawn_zombie(1.0, tmx_data,current_level))
-                        zombies.append(spawn_zombie(1.0, tmx_data,current_level))
+                        enemies = [spawn_enemy(1.0, tmx_data, current_level) for _ in range(2)]
+
+                                    # If it's level 4, explicitly handle humans
+                        if current_level == 4:
+                            zombies.extend(enemies)
+                        else:
+                            zombies.extend(enemies)
                         # Optionally, spawn special zombies if desired:
                         # if current_level >= 5:
                         #     zombies.append(spawn_special_zombie(player.pos, 1.0, current_level, tmx_data))
@@ -188,10 +223,17 @@ def main():
                         player = Player(safe_pos)
 
                         # Check if the next level is the minigame level
+                        # When calling the minigame at level 5
                         if current_level == 3:
+                            progression = rock_paper_scissors_minigame(screen)
+                            if progression:
+                                current_level += 1  # Move to the next level
+                        if current_level == 5:
                             minigame()
                             current_level += 1
-                        
+                        if current_level == 8:
+                            run_antidote_hunt()
+                            current_level += 1
                         # Don't reset total kill count (high score)
                         # Reset objective kills for the new level
                         objective_kills = 0
@@ -263,18 +305,18 @@ def main():
                 if bullet.distance_traveled > BULLET_RANGE:
                     bullets.remove(bullet)
                     continue
-                for zombie in zombies[:]:
-                    if (bullet.pos - zombie.pos).length() < zombie.size:
-                        if zombie.take_damage(50, None):
-                            dead_zombies.append((zombie.pos.copy(), pygame.time.get_ticks()))
-                            zombies.remove(zombie)
+                for enemy in zombies[:]:
+                    if (bullet.pos - enemy.pos).length() < enemy.size:
+                        if enemy.take_damage(50, None):
+                            dead_zombies.append((enemy.pos.copy(), pygame.time.get_ticks()))
+                            zombies.remove(enemy)
                             total_kill_count += 1
                             # Only increment objective_kills if we haven't reached the threshold
                             if objective_kills < KILL_THRESHOLD:
                                 objective_kills += 1
                             if random.random() < 0.3:
                                 pickup_type = 'health' if random.random() < 0.5 else 'ammo'
-                                pickups.append(Pickup(zombie.pos.copy(), pickup_type))
+                                pickups.append(Pickup(enemy.pos.copy(), pickup_type))
                         if bullet in bullets:
                             bullets.remove(bullet)
                         break
@@ -287,17 +329,17 @@ def main():
                     if bullet.distance_traveled > bullet.max_distance:
                         companion.bullets.remove(bullet)
                         continue
-                    for zombie in zombies[:]:
-                        if (bullet.pos - zombie.pos).length() < zombie.size:
-                            if zombie.take_damage(50, None):
-                                dead_zombies.append((zombie.pos.copy(), pygame.time.get_ticks()))
-                                zombies.remove(zombie)
+                    for enemy in zombies[:]:
+                        if (bullet.pos - enemy.pos).length() < enemy.size:
+                            if enemy.take_damage(50, None):
+                                dead_zombies.append((enemy.pos.copy(), pygame.time.get_ticks()))
+                                zombies.remove(enemy)
                                 total_kill_count += 1
                                 # Only increment objective_kills if we haven't reached the threshold
                                 if objective_kills < KILL_THRESHOLD:
                                     objective_kills += 1
                                 if random.random() < 0.3:
-                                    pickups.append(Pickup(zombie.pos.copy(), random.choice(["health", "ammo"])))
+                                    pickups.append(Pickup(enemy.pos.copy(), random.choice(["health", "ammo"])))
                             if bullet in companion.bullets:
                                 companion.bullets.remove(bullet)
                             break
@@ -311,26 +353,28 @@ def main():
                     pickups.remove(pickup)
 
             new_zombies = []
-            for zombie in zombies[:]:
-                if zombie.is_special:
-                    zombie.update(player.pos, collision_rects, map_manager)
-                    if (zombie.pos - player.pos).length() <= 150:
+            for enemy in zombies[:]:
+                if enemy.is_special:
+                    enemy.update(player.pos, collision_rects, map_manager)
+                    if (enemy.pos - player.pos).length() <= 150:
                         num_explode = 8
-                        offset_distance = 30
-                        for i in range(num_explode):
-                            angle = math.radians(i * (360 / num_explode))
-                            new_zombies.append(spawn_zombie(1.0, tmx_data,current_level))
-                            # Don't increment kill count for these spawned zombies
-                        dead_zombies.append(zombie.pos.copy())
-                        zombies.remove(zombie)
+                        new_enemies = [spawn_enemy(1.0, tmx_data, current_level) for _ in range(num_explode)]
+                        
+                        # Only add new enemies to zombies list for non-level 4
+                        if current_level != 4:
+                            zombies.extend(new_enemies)
+                        
+                        dead_zombies.append(enemy.pos.copy())
+                        zombies.remove(enemy)
                         total_kill_count += 1
                         # Only increment objective_kills if we haven't reached the threshold
                         if objective_kills < KILL_THRESHOLD:
                             objective_kills += 1
                         continue
                 else:
-                    zombie.update(player.pos, collision_rects, map_manager)
-                if player.get_rect().colliderect(zombie.get_rect()):
+                    enemy.update(player.pos, collision_rects, map_manager)
+                
+                if player.get_rect().colliderect(enemy.get_rect()):
                     player.take_damage(10)
             zombies.extend(new_zombies)
 
