@@ -3,6 +3,8 @@ import random
 import math
 from constants import PLAYER_SIZE, ZOMBIE_SIZE
 
+boss_spawned = False
+
 def load_spawn_zones(tmx_data):
     """
     Load spawn zones from the Tiled map's "spawn" layer.
@@ -40,6 +42,7 @@ def spawn_enemy(speed_multiplier=1.0, tmx_data=None, current_level=1):
     """
     Spawns an enemy (zombie or human) based on the current level.
     """
+    global boss_spawned
     pos = None
     if tmx_data:
         _, spawn_zones = load_spawn_zones(tmx_data)
@@ -56,14 +59,19 @@ def spawn_enemy(speed_multiplier=1.0, tmx_data=None, current_level=1):
     from PoliceZombie import PoliceZombie
     from ArmyZombie import ArmyZombie
     from human import Human
-    
+    from BossZombie import BossZombie
     # Specifically for level 4, spawn only humans
     if current_level == 4:
         return Human(pos, speed_multiplier)
     
+    if current_level == 7 and not boss_spawned:
+        boss_spawned = True
+        return BossZombie(pos, speed_multiplier)
     # For other levels, use existing zombie spawning logic
     if current_level < 2:
         return Zombie(pos, speed_multiplier)
+        # return BossZombie(pos, speed_multiplier)
+        # return PoliceZombie(pos, speed_multiplier)
     else:
         rand_value = random.random()
         if rand_value < 1/3:

@@ -21,6 +21,7 @@ from human import Human
 from rps import rock_paper_scissors_minigame
 from antidoteg import run_antidote_hunt
 from arsenal import draw_arsenal
+from BossZombie import BossZombie
 
 # Define game states.
 STATE_MENU = "menu"
@@ -222,24 +223,13 @@ def update_zombies(zombies, player, collision_rects, map_manager, tmx_data, curr
     zombies.extend(new_zombies)
     return zombies, total_kill_count, objective_kills
 
-def draw_game_scene(screen, tmx_data, offset, player, bullets, pickups, zombies, companion, checkpoints, dead_zombies, dead_sprite, total_kill_count, objective_kills, current_level, level_manager, collision_rects, map_manager, active_checkpoint, font, large_font):
+def draw_game_scene(screen, tmx_data, offset, player, bullets, pickups, zombies, companion, checkpoints, dead_zombies, dead_sprite, total_kill_count, objective_kills, current_level, level_manager, collision_rects, map_manager, active_checkpoint, font, large_font, puddles):
     """
     Draw the game scene in the running state, including the map, objects, UI, blood effects, and minimap.
     """
     screen.fill(DARK_RED)
     draw_map(screen, tmx_data, offset)
     draw_objects(screen, tmx_data, "props", offset)
-    if checkpoints:
-        draw_checkpoints(screen, checkpoints, offset)
-    for bullet in bullets:
-        bullet.draw(screen, offset)
-    for pickup in pickups:
-        pickup.draw(screen, offset)
-    for zombie in zombies:
-        zombie.draw(screen, offset)
-    if show_companion:
-        companion.draw(screen, offset)
-    player.draw(screen, offset, current_level)
 
     # Draw blood effect: show dead zombie sprite (blood splatter) for 5 seconds.
     current_time = pygame.time.get_ticks()
@@ -249,6 +239,31 @@ def draw_game_scene(screen, tmx_data, offset, player, bullets, pickups, zombies,
             screen.blit(dead_sprite, pos - offset - pygame.Vector2(50, 20))
         else:
             dead_zombies.remove(item)
+    
+    for puddle in puddles:
+        puddle.draw(screen, offset)
+        print("YOLO")
+        distance_to_puddle = (player.pos - puddle.position).length()
+        if distance_to_puddle <= puddle.radius:  # Check if the player is within the puddle's radius
+            print("Player is in the puddle!")  # Debug print
+            player.take_damage(puddle.damage)
+
+    for zombie in zombies[:]:
+        if isinstance(zombie, BossZombie):
+            zombie.draw(screen, offset, player)  # Update BossZombie behavior
+        else:
+            zombie.draw(screen, offset)
+
+    if checkpoints:
+        draw_checkpoints(screen, checkpoints, offset)
+    for bullet in bullets:
+        bullet.draw(screen, offset)
+    for pickup in pickups:
+        pickup.draw(screen, offset)
+
+    if show_companion:
+        companion.draw(screen, offset)
+    player.draw(screen, offset, current_level)
 
     # Draw health bar.
     pygame.draw.rect(screen, (255, 0, 0), (20, 20, 200, 20))
@@ -420,6 +435,7 @@ def main():
     bullets = []
     pickups = []
     dead_zombies = []
+    puddles = []
     total_kill_count = 0
     objective_kills = 0
 
@@ -464,6 +480,13 @@ def main():
                     if spawn_zombies and objective_kills < KILL_THRESHOLD:
                         new_enemies = [spawn_enemy(1.0, tmx_data, current_level) for _ in range(2)]
                         zombies.extend(new_enemies)
+                for puddle in puddles:
+                    puddle.draw(screen, offset)
+                    distance_to_puddle = (player.pos - (puddle.position - offset - pygame.Vector2(60,40))).length()
+
+                    if distance_to_puddle <= puddle.radius:  # Check if the player is within the puddle's radius
+                        print("Player is in the puddle!")  # Debug print
+                        player.take_damage(puddle.damage)
             elif state == STATE_LEVEL_COMPLETE:
                 if event.type == KEYDOWN:
                     if event.key == K_n:
@@ -531,7 +554,7 @@ def main():
             draw_game_scene(screen, tmx_data, offset, player, bullets, pickups, zombies,
                             companion, checkpoints, dead_zombies, dead_sprite,
                             total_kill_count, objective_kills, current_level, level_manager,
-                            collision_rects, map_manager, active_checkpoint, font, large_font)
+                            collision_rects, map_manager, active_checkpoint, font, large_font, puddles)
         elif state == STATE_LEVEL_COMPLETE:
             draw_level_complete(screen, large_font, font, total_kill_count, player)
         elif state == STATE_GAME_OVER:

@@ -7,7 +7,7 @@ class PoliceZombie:
     def __init__(self, spawn_pos, speed_multiplier=1.0):
         self.pos = pygame.Vector2(spawn_pos)
         self.speed = ZOMBIE_SPEED * speed_multiplier
-        self.size = ZOMBIE_SIZE
+        self.size = ZOMBIE_SIZE*0.75
         self.is_special = False
         self.health = 175
         self.angle = 0
