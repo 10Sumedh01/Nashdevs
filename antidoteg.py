@@ -275,9 +275,18 @@ def run_antidote_hunt():
                                 elif cell.is_antidote:
                                     win = True
                                     game_over = True
-                                elif cell.adjacent == 0:
-                                    flood_fill_reveal(board, row, col)
-                                # Removed the extra neighbor reveal call
+                                else:
+                                    # Reveal adjacent safe cells (neighbors that are not bombs or antidote)
+                                    for dr in (-1, 0, 1):
+                                        for dc in (-1, 0, 1):
+                                            nr, nc = row + dr, col + dc
+                                            if 0 <= nr < GRID_SIZE and 0 <= nc < GRID_SIZE:
+                                                neighbor = board[nr][nc]
+                                                if (not neighbor.revealed and not neighbor.flagged and
+                                                    not neighbor.is_bomb and not neighbor.is_antidote):
+                                                    neighbor.revealed = True
+                                                    if neighbor.adjacent == 0:
+                                                        flood_fill_reveal(board, nr, nc)
                         elif event.button == 3:  # Right click to flag/unflag
                             if not cell.revealed:
                                 cell.flagged = not cell.flagged
