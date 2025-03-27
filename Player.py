@@ -7,6 +7,13 @@ from constants import (
     PISTOL_IMAGE_PATH, SHOTGUN_IMAGE_PATH, AKM_IMAGE_PATH, EXKNIFE_IMAGE
 )
 from Bullet import Bullet
+from sound import Sound
+
+shotgun_sound = Sound('shotgun.mp3')
+shotgun_sound.set_volume(0.5)
+pistol_sound = Sound('pistol.mp3')
+akm_sound = Sound('akm.mp3')
+gun_switch_sound = Sound('gun_switch.mp3')
 
 class Player:
     def __init__(self, pos=(0,0)):
@@ -71,6 +78,7 @@ class Player:
 
     def switch_gun(self):
         """Cycle to the next gun mode: pistol -> shotgun -> akm -> pistol."""
+        gun_switch_sound.play()
         self.current_gun_index = (self.current_gun_index + 1) % len(self.gun_modes)
         self.gun_mode = self.gun_modes[self.current_gun_index]
         if not self.has_knife:
@@ -105,10 +113,13 @@ class Player:
         if self.ammo <= 0:
             return None
         if self.gun_mode == 'pistol':
+            pistol_sound.play()
             self.ammo -= 1
             direction = (target_pos - self.pos).normalize()
             return Bullet(self.pos.copy(), direction)
         elif self.gun_mode == 'shotgun':
+            shotgun_sound.set_volume(0.5)
+            shotgun_sound.play()
             self.ammo -= 1
             bullets = []
             base_direction = (target_pos - self.pos).normalize()
@@ -117,6 +128,7 @@ class Player:
                 bullets.append(Bullet(self.pos.copy(), rotated))
             return bullets
         elif self.gun_mode == 'akm':
+            akm_sound.play()
             self.ammo -= 1
             bullets = []
             base_direction = (target_pos - self.pos).normalize()

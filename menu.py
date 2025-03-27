@@ -2,6 +2,10 @@ import pygame
 import sys
 from button import Button
 from main import main
+from sound import Sound
+
+menu_sound = Sound('menu_bg.mp3')
+btn_click_sound = Sound('btn_click.mp3')
 
 pygame.init()
 SCREEN = pygame.display.set_mode((1280, 720))
@@ -36,6 +40,7 @@ def options():
         pygame.display.update()
 
 def main_menu():
+    menu_sound.play_loop()
     while True:
         SCREEN.blit(BG, (0, 0))
         MENU_MOUSE_POS = pygame.mouse.get_pos()
@@ -57,9 +62,12 @@ def main_menu():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
+                btn_click_sound.play()
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    menu_sound.pause()
                     play()  # This will now directly start the game
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
+                    menu_sound.pause()
                     options()
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
                     pygame.quit()

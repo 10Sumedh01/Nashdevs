@@ -22,6 +22,10 @@ from rps import rock_paper_scissors_minigame
 from antidoteg import run_antidote_hunt
 from arsenal import draw_arsenal
 from BossZombie import BossZombie
+from sound import Sound
+
+bg_music = Sound('game_bg.mp3')
+pickup_sound = Sound('pickup.mp3')
 
 # Define game states.
 STATE_MENU = "menu"
@@ -190,6 +194,7 @@ def update_pickups(player, pickups):
     """
     for pickup in pickups[:]:
         if (player.pos - pickup.pos).length() < player.size + pickup.size:
+            pickup_sound.play()
             if pickup.type == 'health':
                 player.health = min(PLAYER_MAX_HEALTH, player.health + HEALTH_PACK_AMOUNT)
             else:
@@ -401,6 +406,7 @@ def draw_game_over(screen, large_font, font, total_kill_count):
     pygame.display.flip()
 
 def main():
+    bg_music.play_loop()
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Resident Evil 2D Survival - Dead Village")
