@@ -11,7 +11,7 @@ from Pickup import Pickup
 from utilityFunctions import load_map, load_collision_rects, draw_map, draw_objects, spawn_special_zombie
 from levelManager import LevelManager
 from Companion import Companion
-from MapManager import MapManager
+from MapManager import MapManager, line_of_sight_clear
 from minimap import draw_minimap
 from checkpoint import load_checkpoints, draw_checkpoints
 from spawn import spawn_enemy, find_player_spawn
@@ -229,9 +229,29 @@ def update_zombies(zombies, player, collision_rects, map_manager, tmx_data, curr
                     objective_kills += 1
                 continue
         else:
-            enemy.update(player.pos, collision_rects, map_manager)
+            # Update regular zombies
+            if line_of_sight_clear(enemy.pos, player.pos, collision_rects):
+                # Move directly toward the player if they are visible
+                enemy.update(player.pos, collision_rects, map_manager)
+            else:
+                # Use A* pathfinding if the player is not visible
+                if not enemy.path or enemy.path_index >= len(enemy.path):
+                    enemy.path = map_manager.astar(enemy.pos, player.pos)
+                    enemy.path_index = 0
+                if enemy.path and enemy.path_index < len(enemy.path):
+                    target = enemy.path[enemy.path_index]
+                    direction = target - enemy.pos
+                    if direction.length() < enemy.speed:
+                        enemy.pos = target
+                        enemy.path_index += 1
+                    else:
+                        direction = direction.normalize()
+                        enemy.pos += direction * enemy.speed
+
+        # Check for collisions with the player
         if player.get_rect().colliderect(enemy.get_rect()):
             player.take_damage(10)
+
     zombies.extend(new_zombies)
     return zombies, total_kill_count, objective_kills
 
@@ -491,7 +511,7 @@ def main():
                 offset = pygame.Vector2(player.pos.x - WIDTH // 2, player.pos.y - HEIGHT // 2)
                 mouse_pos = pygame.mouse.get_pos()
                 world_mouse_pos = pygame.Vector2(mouse_pos) + offset
-                add_bullets, objective_kills,total_kill_count = handle_running_events(event, player, zombies, world_mouse_pos, objective_kills,dead_zombies,total_kill_count)
+                add_bullets, objective_kills, total_kill_count = handle_running_events(event, player, zombies, world_mouse_pos, objective_kills,dead_zombies,total_kill_count)
                 if add_bullets:
                     bullets.extend(add_bullets)
                 if event.type == SPAWN_EVENT:
@@ -514,15 +534,29 @@ def main():
                         checkpoints = load_checkpoints(tmx_data)
                         safe_pos = find_player_spawn(tmx_data)
                         player = Player(safe_pos)
+
+                        # Play slides before minigames for specific levels
                         if current_level == 3:
-                            if rock_paper_scissors_minigame(screen):
+                            if not storyline_shown:
+                                if play_level_story(screen, current_level):
+                                    storyline_shown = True
+                            elif rock_paper_scissors_minigame(screen):
                                 current_level += 1
+
                         if current_level == 5:
-                            minigame()
-                            current_level += 1
+                            if not storyline_shown:
+                                if play_level_story(screen, current_level):
+                                    storyline_shown = True
+                            elif minigame():
+                                current_level += 1
+
                         if current_level == 8:
-                            run_antidote_hunt()
-                            current_level += 1
+                            if not storyline_shown:
+                                if play_level_story(screen, current_level):
+                                    storyline_shown = True
+                            elif run_antidote_hunt():
+                                current_level += 1
+
                         objective_kills = 0
                         checkpoint_active = False
                         active_checkpoint = None
