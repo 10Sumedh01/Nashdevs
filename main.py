@@ -23,6 +23,7 @@ from antidoteg import run_antidote_hunt
 from arsenal import draw_arsenal
 from BossZombie import BossZombie
 from sound import Sound
+from pause import pause
 
 bg_music = Sound('game_bg.mp3')
 pickup_sound = Sound('pickup.mp3')
@@ -465,6 +466,10 @@ def main():
                 pygame.quit()
                 sys.exit()
 
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:  # Press 'P' to pause
+                    pause(screen)
+                    
             # Process events per state.
             if state == STATE_MENU:
                 state, resets, active_checkpoint = handle_menu_events(event, checkpoints)

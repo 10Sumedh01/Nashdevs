@@ -4,6 +4,8 @@ import sys
 import os
 import time
 
+from pause import pause
+
 # --- Constants ---
 WIDTH = 1280
 HEIGHT = 720
@@ -80,6 +82,9 @@ def type_text(screen, font, text, pos):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:  # Press 'P' to pause
+                    pause(screen)
         displayed_text += char
         rendered = font.render(displayed_text, True, TEXT_COLOR)
         screen.fill(BG_COLOR)
@@ -215,6 +220,9 @@ class SurvivalChallengeGame:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:  # Press 'P' to pause
+                        pause(screen)
+                if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
                         answer = "A"
                     elif event.key == pygame.K_b:
@@ -266,6 +274,9 @@ class SurvivalChallengeGame:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:  # Press 'P' to pause
+                        pause(screen)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_y:
                         player_choice = True

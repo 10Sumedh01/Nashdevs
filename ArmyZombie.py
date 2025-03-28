@@ -9,7 +9,8 @@ class ArmyZombie:
         self.speed = ZOMBIE_SPEED * speed_multiplier
         self.size = ZOMBIE_SIZE*0.75
         self.is_special = False
-        self.health = 250
+        self.max_health = 250+250*25/100
+        self.health = self.max_health
         self.angle = 0
         self.path = []
         self.path_index = 0
@@ -82,3 +83,22 @@ class ArmyZombie:
         rotated_image = pygame.transform.rotate(self.original_image, self.angle)
         img_rect = rotated_image.get_rect(center=(self.pos.x - offset.x, self.pos.y - offset.y))
         surface.blit(rotated_image, img_rect)
+        self.draw_health_bar(surface, offset)
+    
+    def draw_health_bar(self, surface, offset):
+        """
+        Draw the health bar above the zombie.
+        :param surface: The game screen.
+        :param offset: The camera offset.
+        """
+        bar_width = self.size  # Width of the health bar (same as zombie size)
+        bar_height = 5  # Height of the health bar
+        health_ratio = self.health / self.max_health  # Health percentage
+
+        # Calculate the position of the health bar
+        bar_x = self.pos.x - offset.x - bar_width // 2
+        bar_y = self.pos.y - offset.y - self.size // 2 - 10  # Above the zombie
+
+        # Draw the background (red) and foreground (green) of the health bar
+        pygame.draw.rect(surface, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))  # Red background
+        pygame.draw.rect(surface, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))  # Green foreground

@@ -3,6 +3,8 @@ import sys
 import random
 import math
 
+from pause import pause
+
 # --- Constants ---
 WIDTH = 1280
 HEIGHT = 720
@@ -255,6 +257,9 @@ def run_antidote_hunt():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:  # Press 'P' to pause
+                    pause(screen)
             if not game_over:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     mx, my = event.pos

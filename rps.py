@@ -1,6 +1,9 @@
+from pygame import font
 import pygame
 import random
 import numpy as np
+
+from pause import pause
 
 def rock_paper_scissors_minigame(screen):
     # ----- Perceptron Model -----
@@ -137,7 +140,9 @@ def rock_paper_scissors_minigame(screen):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return True  # Ensure progression even if window is closed
-            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:  # Press 'P' to pause
+                    pause(screen)
             if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
                 pos = pygame.mouse.get_pos()
                 selected_move = None

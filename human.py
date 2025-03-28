@@ -5,9 +5,10 @@ from constants import ZOMBIE_SIZE
 class Human:
     def __init__(self, pos, speed_multiplier=1.0):
         self.pos = pygame.Vector2(pos)
-        self.size = ZOMBIE_SIZE
+        self.size = ZOMBIE_SIZE*0.5
         self.speed = 100 * speed_multiplier
-        self.health = 100
+        self.max_health = 500
+        self.health = self.max_health
         self.is_special = False
         
         # Load human sprite (you'll need to create this asset)
@@ -44,6 +45,7 @@ class Human:
 
     def draw(self, screen, offset):
         screen.blit(self.sprite, self.pos - offset - pygame.Vector2(self.size, self.size))
+        self.draw_health_bar(screen, offset)
 
     def take_damage(self, damage, bullet_pos):
         """
@@ -60,3 +62,21 @@ class Human:
         return pygame.Rect(self.pos.x - self.size, 
                            self.pos.y - self.size, 
                            self.size*2, self.size*2)
+    
+    def draw_health_bar(self, screen, offset):
+        """
+        Draw the health bar above the human.
+        :param screen: The game screen.
+        :param offset: The camera offset.
+        """
+        bar_width = self.size * 2  # Width of the health bar (same as human size)
+        bar_height = 5  # Height of the health bar
+        health_ratio = self.health / self.max_health  # Health percentage
+
+        # Calculate the position of the health bar
+        bar_x = self.pos.x - offset.x - bar_width // 2
+        bar_y = self.pos.y - offset.y - self.size - 10  # Above the human
+
+        # Draw the background (red) and foreground (green) of the health bar
+        pygame.draw.rect(screen, (255, 0, 0), (bar_x, bar_y, bar_width, bar_height))  # Red background
+        pygame.draw.rect(screen, (0, 255, 0), (bar_x, bar_y, bar_width * health_ratio, bar_height))  # Green foreground
