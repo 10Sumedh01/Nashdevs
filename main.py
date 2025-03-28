@@ -11,12 +11,12 @@ from Pickup import Pickup
 from utilityFunctions import load_map, load_collision_rects, draw_map, draw_objects, spawn_special_zombie
 from levelManager import LevelManager
 from Companion import Companion
-from MapManager import MapManager, line_of_sight_clear
+from MapManager import MapManager
 from minimap import draw_minimap
 from checkpoint import load_checkpoints, draw_checkpoints
 from spawn import spawn_enemy, find_player_spawn
 from storyline import play_level_story
-from doctor_minigame import minigame
+from doctor_minigame import doc_main
 from human import Human
 from rps import rock_paper_scissors_minigame
 from antidoteg import run_antidote_hunt
@@ -24,7 +24,7 @@ from arsenal import draw_arsenal
 from BossZombie import BossZombie
 from sound import Sound
 from pause import pause
-
+from neural_siege import neural_siege_main
 bg_music = Sound('game_bg.mp3')
 pickup_sound = Sound('pickup.mp3')
 
@@ -34,6 +34,8 @@ STATE_STORYLINE = "storyline"
 STATE_RUNNING = "running"
 STATE_LEVEL_COMPLETE = "level_complete"
 STATE_GAME_OVER = "game_over"
+STATE_MINIGAME = "minigame"
+STATE_SLIDES = "slides"
 
 KILL_THRESHOLD = 5  # When objective_kills reaches this value, checkpoint is activated.
 
@@ -229,29 +231,9 @@ def update_zombies(zombies, player, collision_rects, map_manager, tmx_data, curr
                     objective_kills += 1
                 continue
         else:
-            # Update regular zombies
-            if line_of_sight_clear(enemy.pos, player.pos, collision_rects):
-                # Move directly toward the player if they are visible
-                enemy.update(player.pos, collision_rects, map_manager)
-            else:
-                # Use A* pathfinding if the player is not visible
-                if not enemy.path or enemy.path_index >= len(enemy.path):
-                    enemy.path = map_manager.astar(enemy.pos, player.pos)
-                    enemy.path_index = 0
-                if enemy.path and enemy.path_index < len(enemy.path):
-                    target = enemy.path[enemy.path_index]
-                    direction = target - enemy.pos
-                    if direction.length() < enemy.speed:
-                        enemy.pos = target
-                        enemy.path_index += 1
-                    else:
-                        direction = direction.normalize()
-                        enemy.pos += direction * enemy.speed
-
-        # Check for collisions with the player
+            enemy.update(player.pos, collision_rects, map_manager)
         if player.get_rect().colliderect(enemy.get_rect()):
             player.take_damage(10)
-
     zombies.extend(new_zombies)
     return zombies, total_kill_count, objective_kills
 
@@ -511,7 +493,7 @@ def main():
                 offset = pygame.Vector2(player.pos.x - WIDTH // 2, player.pos.y - HEIGHT // 2)
                 mouse_pos = pygame.mouse.get_pos()
                 world_mouse_pos = pygame.Vector2(mouse_pos) + offset
-                add_bullets, objective_kills, total_kill_count = handle_running_events(event, player, zombies, world_mouse_pos, objective_kills,dead_zombies,total_kill_count)
+                add_bullets, objective_kills,total_kill_count = handle_running_events(event, player, zombies, world_mouse_pos, objective_kills,dead_zombies,total_kill_count)
                 if add_bullets:
                     bullets.extend(add_bullets)
                 if event.type == SPAWN_EVENT:
@@ -535,33 +517,24 @@ def main():
                         safe_pos = find_player_spawn(tmx_data)
                         player = Player(safe_pos)
 
-                        # Play slides before minigames for specific levels
-                        if current_level == 3:
-                            if not storyline_shown:
-                                if play_level_story(screen, current_level):
-                                    storyline_shown = True
-                            elif rock_paper_scissors_minigame(screen):
-                                current_level += 1
+                        # Reset states for new level
+                        storyline_shown = False
+                        state = STATE_SLIDES if current_level in [3, 5, 8] else STATE_MENU
 
-                        if current_level == 5:
-                            if not storyline_shown:
-                                if play_level_story(screen, current_level):
-                                    storyline_shown = True
-                            elif minigame():
-                                current_level += 1
-
-                        if current_level == 8:
-                            if not storyline_shown:
-                                if play_level_story(screen, current_level):
-                                    storyline_shown = True
-                            elif run_antidote_hunt():
-                                current_level += 1
-
+                        # if current_level == 3:
+                        #     if rock_paper_scissors_minigame(screen):
+                        #         current_level += 1
+                        # if current_level == 5:
+                        #     minigame()
+                        #     current_level += 1
+                        # if current_level == 8:
+                        #     run_antidote_hunt()
+                        #     current_level += 1
                         objective_kills = 0
                         checkpoint_active = False
                         active_checkpoint = None
-                        state = STATE_MENU
-                        storyline_shown = False
+                        # state = STATE_MENU
+                        # storyline_shown = False
                     if event.key == K_q:
                         pygame.quit()
                         sys.exit()
@@ -569,6 +542,40 @@ def main():
                 if event.type == KEYDOWN and event.key == K_r:
                     main()
                     return
+            elif state == STATE_SLIDES:
+                if play_level_story(screen, current_level):
+                    storyline_shown = True
+                    state = STATE_MINIGAME
+
+# In the main game loop, modify the minigame state handling:
+            elif state == STATE_MINIGAME:
+                if current_level == 3:
+                    if neural_siege_main():
+                        current_level += 1
+                        state = STATE_MENU
+                elif current_level == 5:
+                    minigame_result = doc_main()  # Store the result
+                    if minigame_result:  # Check if minigame completed successfully
+                        current_level += 1
+                        tmx_data = load_specific_map(current_level)
+                        collision_rects = load_collision_rects(tmx_data)
+                        checkpoints = load_checkpoints(tmx_data)
+                        safe_pos = find_player_spawn(tmx_data)
+                        player = Player(safe_pos)
+                        
+                        # Reset key game states to ensure zombie spawning
+                        spawn_zombies = True
+                        objective_kills = 0
+                        if checkpoints and len(checkpoints) > 0:
+                            active_checkpoint = checkpoints[0]
+                        state = STATE_RUNNING  # Change to STATE_RUNNING instead of STATE_MENU
+                elif current_level == 8:
+                    antidote_result = run_antidote_hunt()
+                    if antidote_result:
+                            # Play storyline before moving to the next level
+                        play_level_story(screen, current_level)
+                        current_level += 1
+                        state = STATE_MENU
 
         # State-specific updates and drawing.
         if state == STATE_MENU:
