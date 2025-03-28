@@ -108,22 +108,24 @@ def play_level1_story(screen):
         StorySlide("assets/story/level1_1.png", 
                   "The virus has ravaged the world for weeks—supplies are running dry."),
         StorySlide("assets/story/level1_2.png", 
-                  "We scavenge what little remains, but danger lurks in every shadow."),
+                  "We barricade the doors, rationing what little remains, hoping for a plan."),
         StorySlide("assets/story/level1_3.png", 
-                  "With no choice left, we arm up and prepare to move out."),
+                  "Outside, the streets are filled with eerie silence, broken only by distant groans."),
         StorySlide("assets/story/level1_4.png", 
-                  "The streets are eerily silent, but we know we're not alone."),
+                  "The power is flickering. We know staying here isn't an option much longer."),
         StorySlide("assets/story/level1_5.png", 
-                  "The undead wait in the darkness… and the fight for survival begins."),
+                  "Arming ourselves with whatever we can find, we finally decide to leave."),
         StorySlide("assets/story/level1_6.png", 
-                  "Suddenly, a guttural growl breaks the silence. It’s too late to turn back."),
+                  "We cautiously step outside—the cold night air carries an unsettling stillness."),
         StorySlide("assets/story/level1_7.png", 
-                  "We brace ourselves as the first undead shuffles into view, its eyes locked onto us."),
+                  "A guttural growl breaks the silence. It’s too late to turn back."),
         StorySlide("assets/story/level1_8.png", 
                   "The first shot rings out—this is just the beginning. The fight for survival has truly begun.")
     ]
     
     return play_story_sequence(screen, level1_slides)
+
+
 
 
 # Level 2 storyline
@@ -153,31 +155,24 @@ def play_level3_story(screen):
     # Create slides for Level 3
     level3_slides = [
         StorySlide("assets/story/level3_1.png", 
-                  "Night falls as we race through the city. The air feels heavy, and the streets are eerily silent. Something’s wrong… but we don't know what yet."),
-        
+                  "The battle rages—we fight desperately, dodging and striking."),
         StorySlide("assets/story/level3_2.png", 
-                  "Out of nowhere, a wrecked car emerges from the fog… We swerve, but it’s too late!"),
-        
+                  "A car speeds in, screeching to a halt. A door flings open."),
         StorySlide("assets/story/level3_3.png", 
-                  "The impact is brutal—metal twists, glass shatters. We're thrown into darkness."),
-        
+                  "No time to think—we jump in. A sharp sting... vision fades."),
         StorySlide("assets/story/level3_4.png", 
-                  "Dazed, we barely process the crash, but then… the sounds hit us."),
-        
+                  "Darkness. Voices murmur. My wrists are bound."),
         StorySlide("assets/story/level3_5.png", 
-                  "Shadows move in the darkness—grotesque figures closing in, their eyes glowing with hunger."),
-        
+                  "A dim light flickers—shadows loom over us."),
         StorySlide("assets/story/level3_6.png", 
-                  "The thief steps forward, a grin spreading across his face. 'Time for a game,' he sneers. 'Are you ready to play?'"),
-        
+                  "A scream. Someone collapses. Blood stains the floor."),
         StorySlide("assets/story/level3_7.png", 
-                  "His companions emerge from the shadows, surrounding us. Their eyes burn with malice, and there's no way out."),
-        
+                  "A smirking figure steps forward. 'You want to live?'"),
         StorySlide("assets/story/level3_8.png", 
-                  "There's no turning back. It's time to play, or perish.")
+                  "'Win… or die.' The game begins.")
     ]
-
     return play_story_sequence(screen, level3_slides)
+
 
 # Level 4 storyline
 def play_level4_story(screen):

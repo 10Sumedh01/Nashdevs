@@ -201,12 +201,12 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="15" x="938" y="60" width="308" height="528">
+  <object id="15" x="938" y="60" width="308" height="504">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="16" x="942" y="726" width="292" height="304">
+  <object id="16" x="942" y="742" width="292" height="288">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -216,22 +216,22 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="18" x="2076" y="38" width="94" height="812">
+  <object id="18" x="2076" y="38" width="94" height="782">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="21" x="1106" y="970" width="1068" height="120">
+  <object id="21" x="1106" y="982" width="1068" height="108">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="22" x="2280" y="450" width="176" height="122">
+  <object id="22" x="2170" y="450" width="286" height="122">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="23" x="2456" y="392" width="112" height="238">
+  <object id="23" x="2456" y="450" width="112" height="120">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -276,12 +276,7 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="33" x="2348" y="784" width="220" height="298">
-   <properties>
-    <property name="collidable" value="true"/>
-   </properties>
-  </object>
-  <object id="35" x="2462" y="1078" width="676" height="214">
+  <object id="35" x="2764" y="1078" width="374" height="214">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -291,17 +286,17 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="39" x="2772" y="1364" width="84" height="122">
+  <object id="39" x="2774" y="1292" width="184" height="218">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="40" x="2500" y="1346" width="60" height="150">
+  <object id="40" x="2500" y="1346" width="262" height="150">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="41" x="2962" y="1414" width="104" height="88">
+  <object id="41" x="2962" y="1300" width="104" height="202">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -316,7 +311,7 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="44" x="2108" y="1252" width="208" height="692">
+  <object id="44" x="2108" y="1252" width="208" height="654">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -361,7 +356,7 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="53" x="2040" y="1620" width="66" height="322">
+  <object id="53" x="2040" y="1620" width="66" height="288">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
@@ -376,12 +371,12 @@
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="58" x="1540" y="1840" width="124" height="208">
+  <object id="58" x="1540" y="1874" width="124" height="174">
    <properties>
     <property name="collidable" value="true"/>
    </properties>
   </object>
-  <object id="59" x="1334" y="2042" width="772" height="90">
+  <object id="59" x="1334" y="2064" width="772" height="68">
    <properties>
     <property name="collidable" value="true"/>
    </properties>

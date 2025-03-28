@@ -91,6 +91,40 @@ def spawn_enemy(speed_multiplier=1.0, tmx_data=None, current_level=1):
         else:
             return ArmyZombie(pos, speed_multiplier)
 
+def spawn_all_enemies_equally(speed_multiplier=1.0, tmx_data=None):
+    """
+    Spawns all enemy types with equal probability including bosses.
+    """
+    # Get a spawn position
+    pos = None
+    if tmx_data:
+        _, spawn_zones, _ = load_spawn_zones(tmx_data)
+        if spawn_zones:
+            zone = random.choice(spawn_zones)
+            pos = random_point_in_rect(zone)
+    
+    if pos is None:
+        # Fallback: random position
+        angle = random.uniform(0, 2 * math.pi)
+        distance = random.uniform(500, 800)
+        pos = pygame.Vector2(math.cos(angle) * distance, math.sin(angle) * distance)
+
+    # Import all enemy types
+    from Zombie import Zombie
+    from PoliceZombie import PoliceZombie
+    from ArmyZombie import ArmyZombie
+    from BossZombie import BossZombie
+    from human import Human
+    
+    # Define all enemy types with equal probability
+    enemy_types = [Zombie, PoliceZombie, ArmyZombie, BossZombie, Human]
+    
+    # Choose a random enemy type
+    EnemyClass = random.choice(enemy_types)
+    
+    # Return the new enemy instance
+    return EnemyClass(pos, speed_multiplier)
+
 def find_player_spawn(tmx_data):
     """
     Finds a spawn position for the player from the spawn_p zones.

@@ -4,6 +4,7 @@ import random
 import math
 
 from pause import pause
+from game_end import game_end
 
 # --- Constants ---
 WIDTH = 1280
@@ -278,8 +279,35 @@ def run_antidote_hunt():
                                     game_over = True
                                     win = False
                                 elif cell.is_antidote:
+                                    # First, ensure the cell is revealed and redrawn
+                                    cell.revealed = True
+                                    
+                                    # Redraw the entire board to show the antidote
+                                    screen.fill(BG_COLOR)
+                                    title_text = header_font.render("Antidote Hunt", True, HEADER_COLOR)
+                                    screen.blit(title_text, (WIDTH // 2 - title_text.get_width() // 2, 80))
+                                    draw_timer(remaining_time)
+                                    
+                                    # Draw the updated board with revealed antidote
+                                    for row in board:
+                                        for cell in row:
+                                            cell.draw(screen)
+                                    
+                                    # Show the success message
+                                    result_msg = "💊 Antidote Acquired! You Win!"
+                                    msg_color = TIMER_COLOR
+                                    result_text = header_font.render(result_msg, True, msg_color)
+                                    screen.blit(result_text, (WIDTH // 2 - result_text.get_width() // 2, HEIGHT - 150))
+                                    pygame.display.flip()
+                                    
+                                    # Give player time to see the antidote
+                                    pygame.time.delay(2000)
+                                    
+                                    # Now set the game state and show game end screen
                                     win = True
                                     game_over = True
+                                    game_end(screen)
+                                    return True  # Return win status
                                 else:
                                     # Reveal adjacent safe cells (neighbors that are not bombs or antidote)
                                     for dr in (-1, 0, 1):
@@ -319,6 +347,8 @@ def run_antidote_hunt():
             pygame.display.flip()
 
         clock.tick(FPS)
+    
+    return win  # Return the final game result
 
 
 if __name__ == "__main__":
