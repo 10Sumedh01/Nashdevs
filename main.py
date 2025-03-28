@@ -78,15 +78,19 @@ def handle_menu_events(event, checkpoints):
     new_state = STATE_MENU
     reset_vars = {"objective_kills": 0, "spawn_zombies": True, "zombies": []}
     active_checkpoint = None
-    if event.type == KEYDOWN:
-        if event.key == K_s:
-            new_state = STATE_STORYLINE
-            # Reset level-specific states when starting.
-            if checkpoints and len(checkpoints) > 0:
-                active_checkpoint = checkpoints[0]
-        elif event.key == K_q:
-            pygame.quit()
-            sys.exit()
+    # if event.type == KEYDOWN:
+    #     if event.key == K_s:
+    #         new_state = STATE_STORYLINE
+    #         # Reset level-specific states when starting.
+    #         if checkpoints and len(checkpoints) > 0:
+    #             active_checkpoint = checkpoints[0]
+    #     elif event.key == K_q:
+    #         pygame.quit()
+    #         sys.exit()
+    new_state = STATE_STORYLINE
+    # Reset level-specific states when starting.
+    if checkpoints and len(checkpoints) > 0:
+        active_checkpoint = checkpoints[0]
     return new_state, reset_vars, active_checkpoint
 
 def process_storyline(screen, current_level, storyline_shown):
@@ -101,7 +105,7 @@ def process_storyline(screen, current_level, storyline_shown):
             return STATE_MENU, True
     return STATE_RUNNING, True
 
-def handle_running_events(event, player, zombies, world_mouse_pos, objective_kills):
+def handle_running_events(event, player, zombies, world_mouse_pos, objective_kills,dead_zombies,total_kill_count):
     """
     Handles key and mouse events during gameplay.
     Returns any additional bullets (if shot) and updated objective_kills.
@@ -131,10 +135,12 @@ def handle_running_events(event, player, zombies, world_mouse_pos, objective_kil
                 if z in zombies:
                     if z.take_damage(999, None):  # Instant kill via knife
                         zombies.remove(z)
+                        dead_zombies.append((z.pos.copy(), pygame.time.get_ticks()))
+                        total_kill_count += 1
                         # Increase objective kill count if below threshold.
                         if objective_kills < KILL_THRESHOLD:
                             objective_kills += 1
-    return additional_bullets, objective_kills
+    return additional_bullets, objective_kills, total_kill_count
 
 def update_bullets(bullets, zombies, pickups, dead_zombies, tmx_data, current_level, total_kill_count, objective_kills):
     """
@@ -338,6 +344,7 @@ def draw_menu(screen, large_font, font, current_level, total_kill_count, player)
     """
     Draw the main menu screen.
     """
+    return 
     screen.fill(DARK_RED)
     title_text = large_font.render("RESIDENT EVIL 2D SURVIVAL", True, TEXT_COLOR)
     level_text = large_font.render(f"LEVEL {current_level}", True, TEXT_COLOR)
@@ -484,7 +491,7 @@ def main():
                 offset = pygame.Vector2(player.pos.x - WIDTH // 2, player.pos.y - HEIGHT // 2)
                 mouse_pos = pygame.mouse.get_pos()
                 world_mouse_pos = pygame.Vector2(mouse_pos) + offset
-                add_bullets, objective_kills = handle_running_events(event, player, zombies, world_mouse_pos, objective_kills)
+                add_bullets, objective_kills,total_kill_count = handle_running_events(event, player, zombies, world_mouse_pos, objective_kills,dead_zombies,total_kill_count)
                 if add_bullets:
                     bullets.extend(add_bullets)
                 if event.type == SPAWN_EVENT:
