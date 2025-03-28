@@ -1,15 +1,92 @@
 import pygame
 import math
+import random
 from constants import ZOMBIE_COLOR, ZOMBIE_SIZE, ZOMBIE_SPEED, COLLISION_THRESHOLD
 from MapManager import line_of_sight_clear
 
+# --- A* Pathfinding Algorithm ---
+def astar_path(start, goal, obstacles, cell_size=50):
+    """
+    Compute a path from start to goal using a grid-based A* algorithm.
+    start, goal: pygame.Vector2 positions.
+    obstacles: list of pygame.Rect obstacles.
+    cell_size: grid cell size.
+    Returns a list of pygame.Vector2 positions (centers of cells).
+    """
+    grid_width = pygame.display.get_surface().get_width()
+    grid_height = pygame.display.get_surface().get_height()
+    cols = math.ceil(grid_width / cell_size)
+    rows = math.ceil(grid_height / cell_size)
+    
+    def node_from_pos(pos):
+        return (int(pos.x // cell_size), int(pos.y // cell_size))
+    
+    def pos_from_node(node):
+        return pygame.Vector2(node[0] * cell_size + cell_size / 2,
+                              node[1] * cell_size + cell_size / 2)
+    
+    def heuristic(a, b):
+        # Euclidean distance
+        return math.hypot(b[0] - a[0], b[1] - a[1])
+    
+    def is_walkable(node):
+        x, y = node
+        if x < 0 or x >= cols or y < 0 or y >= rows:
+            return False
+        node_rect = pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size)
+        for obs in obstacles:
+            if node_rect.colliderect(obs):
+                return False
+        return True
+
+    start_node = node_from_pos(start)
+    goal_node = node_from_pos(goal)
+    
+    open_set = {start_node}
+    came_from = {}
+    g_score = {start_node: 0}
+    f_score = {start_node: heuristic(start_node, goal_node)}
+    
+    while open_set:
+        current = min(open_set, key=lambda n: f_score.get(n, float('inf')))
+        if current == goal_node:
+            # Reconstruct path
+            path = []
+            while current in came_from:
+                path.append(pos_from_node(current))
+                current = came_from[current]
+            path.append(pos_from_node(start_node))
+            path.reverse()
+            return path
+        
+        open_set.remove(current)
+        cx, cy = current
+        # Check all 8 neighbors
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                if dx == 0 and dy == 0:
+                    continue
+                neighbor = (cx + dx, cy + dy)
+                if not is_walkable(neighbor):
+                    continue
+                tentative_g = g_score.get(current, float('inf')) + (math.hypot(dx, dy))
+                if tentative_g < g_score.get(neighbor, float('inf')):
+                    came_from[neighbor] = current
+                    g_score[neighbor] = tentative_g
+                    f_score[neighbor] = tentative_g + heuristic(neighbor, goal_node)
+                    if neighbor not in open_set:
+                        open_set.add(neighbor)
+    # No path found
+    return []
+
+# --- Zombie Class ---
 class Zombie:
     def __init__(self, spawn_pos, speed_multiplier=1.0):
         self.pos = pygame.Vector2(spawn_pos)
         self.speed = ZOMBIE_SPEED * speed_multiplier
         self.size = ZOMBIE_SIZE
         self.is_special = False
-        self.max_health = 100+100*25/100
+        self.max_health = 100 + 100 * 25 / 100
         self.health = self.max_health
         self.angle = 0
         self.path = []
@@ -43,13 +120,19 @@ class Zombie:
                     self.path_index = 0
                     self.last_path_update = current_time
                 else:
-                    if current_time - self.last_path_update > 500 and map_manager:
-                        self.path = map_manager.astar(self.pos, player_pos)
+                    if current_time - self.last_path_update > 500:
+                        if map_manager:
+                            self.path = map_manager.astar(self.pos, player_pos)
+                        else:
+                            self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
                         self.path_index = 0
                         self.last_path_update = current_time
         else:
-            if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500) and map_manager:
-                self.path = map_manager.astar(self.pos, player_pos)
+            if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500):
+                if map_manager:
+                    self.path = map_manager.astar(self.pos, player_pos)
+                else:
+                    self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
                 self.path_index = 0
                 self.last_path_update = current_time
             if self.path and self.path_index < len(self.path):
@@ -68,8 +151,11 @@ class Zombie:
                     if not collision:
                         self.pos = candidate_pos
                     else:
-                        if current_time - self.last_path_update > 500 and map_manager:
-                            self.path = map_manager.astar(self.pos, player_pos)
+                        if current_time - self.last_path_update > 500:
+                            if map_manager:
+                                self.path = map_manager.astar(self.pos, player_pos)
+                            else:
+                                self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
                             self.path_index = 0
                             self.last_path_update = current_time
                 self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90

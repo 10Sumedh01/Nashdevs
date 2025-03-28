@@ -1,6 +1,7 @@
 import pygame
-from Zombie import Zombie
-from constants import ZOMBIE_SPEED,ZOMBIE_SIZE
+import math
+from Zombie import Zombie, astar_path  # Import the A* function
+from constants import ZOMBIE_SPEED, ZOMBIE_SIZE
 
 SPECIAL_ZOMBIE_IMAGE_PATH = "assets/special_zombie.png"
 
@@ -24,9 +25,40 @@ class SpecialZombie(Zombie):
 
     def update(self, player_pos, obstacles):
         current_time = pygame.time.get_ticks()
+        
+        # Remain immobile for the specified duration
         if current_time - self.spawn_time < self.immobile_duration:
             return
-        super().update(player_pos, obstacles)
+        
+        # Use A* pathfinding to find the player
+        if not self.path or self.path_index >= len(self.path):
+            self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
+            self.path_index = 0
+
+        if self.path and self.path_index < len(self.path):
+            target = self.path[self.path_index]
+            direction = target - self.pos
+            if direction.length() < self.speed:
+                self.pos = target
+                self.path_index += 1
+            else:
+                direction = direction.normalize()
+                candidate_pos = self.pos + direction * self.speed
+                candidate_rect = pygame.Rect(candidate_pos.x - self.size // 2,
+                                             candidate_pos.y - self.size // 2,
+                                             self.size, self.size)
+                collision = any(candidate_rect.colliderect(obs) for obs in obstacles)
+                if not collision:
+                    self.pos = candidate_pos
+                else:
+                    # Recalculate path if collision occurs
+                    self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
+                    self.path_index = 0
+
+        # Update the angle to face the player
+        direction = player_pos - self.pos
+        if direction.length() > 0:
+            self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
 
     def draw(self, surface, offset):
         img_rect = self.image.get_rect(center=(self.pos.x - offset.x, self.pos.y - offset.y))

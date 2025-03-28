@@ -2,14 +2,15 @@ import pygame
 import math
 from constants import ZOMBIE_COLOR, ZOMBIE_SIZE, ZOMBIE_SPEED, COLLISION_THRESHOLD
 from MapManager import line_of_sight_clear
+from Zombie import astar_path  # Import the A* pathfinding function
 
 class PoliceZombie:
     def __init__(self, spawn_pos, speed_multiplier=1.0):
         self.pos = pygame.Vector2(spawn_pos)
         self.speed = ZOMBIE_SPEED * speed_multiplier
-        self.size = ZOMBIE_SIZE*0.75
+        self.size = ZOMBIE_SIZE * 0.75
         self.is_special = False
-        self.max_health = 175+175*25/100
+        self.max_health = 175 + 175 * 25 / 100
         self.health = self.max_health
         self.angle = 0
         self.path = []
@@ -24,9 +25,10 @@ class PoliceZombie:
         self.health -= damage
         return self.health <= 0
 
-    def update(self, player_pos, obstacles, map_manager):
+    def update(self, player_pos, obstacles, map_manager=None):
         current_time = pygame.time.get_ticks()
-        # Try direct approach if line-of-sight is clear.
+
+        # Try direct approach if line-of-sight is clear
         if line_of_sight_clear(self.pos, player_pos, obstacles):
             direction = player_pos - self.pos
             if direction.length() > 0:
@@ -43,15 +45,18 @@ class PoliceZombie:
                     self.path_index = 0
                     self.last_path_update = current_time
                 else:
-                    if current_time - self.last_path_update > 500 and map_manager:
-                        self.path = map_manager.astar(self.pos, player_pos)
+                    # Recalculate path if collision occurs
+                    if current_time - self.last_path_update > 500:
+                        self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
                         self.path_index = 0
                         self.last_path_update = current_time
         else:
-            if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500) and map_manager:
-                self.path = map_manager.astar(self.pos, player_pos)
+            # Use A* pathfinding if no direct line-of-sight
+            if (not self.path or self.path_index >= len(self.path)) and (current_time - self.last_path_update > 500):
+                self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
                 self.path_index = 0
                 self.last_path_update = current_time
+
             if self.path and self.path_index < len(self.path):
                 target = self.path[self.path_index]
                 direction = target - self.pos
@@ -68,11 +73,16 @@ class PoliceZombie:
                     if not collision:
                         self.pos = candidate_pos
                     else:
-                        if current_time - self.last_path_update > 500 and map_manager:
-                            self.path = map_manager.astar(self.pos, player_pos)
+                        # Recalculate path if collision occurs
+                        if current_time - self.last_path_update > 500:
+                            self.path = astar_path(self.pos, player_pos, obstacles, cell_size=50)
                             self.path_index = 0
                             self.last_path_update = current_time
-                self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
+
+        # Update the angle to face the player
+        direction = player_pos - self.pos
+        if direction.length() > 0:
+            self.angle = math.degrees(math.atan2(-direction.y, direction.x)) - 90
 
     def get_rect(self):
         return pygame.Rect(self.pos.x - self.size // 2,

@@ -8,7 +8,7 @@ def pause(screen):
     """
     font = pygame.font.SysFont("Arial", 24)
     paused = True
-    pause_text = font.render("Game Paused. Press any key to resume.", True, (255, 255, 255))
+    pause_text = font.render("Game Paused. Press space key to resume.", True, (255, 255, 255))
     text_rect = pause_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
 
     while paused:
