@@ -3,6 +3,7 @@ import random
 import math
 from constants import PLAYER_SIZE, ZOMBIE_SIZE
 
+# Global flag to track boss spawn
 boss_spawned = False
 
 def load_spawn_zones(tmx_data):
@@ -13,24 +14,25 @@ def load_spawn_zones(tmx_data):
     """
     player_zones = []
     spawn_zones = []
+    boss_zones = []  # New list to specifically track boss spawn zones
     try:
         spawn_layer = tmx_data.get_layer_by_name("spawn")
     except Exception as e:
         print("Error: 'spawn' layer not found in map.", e)
-        return player_zones, spawn_zones
+        return player_zones, spawn_zones, boss_zones
 
     for obj in spawn_layer:
         # For human/zombie spawn zones:
         if obj.properties.get("spawn_z") in [True, "true", "True"]:
-            # Create a rect using the object's x, y, width, and height.
             spawn_zones.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
         if obj.properties.get("spawn_h") in [True, "true", "True"]:
-            # Create a rect using the object's x, y, width, and height.
             spawn_zones.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
+        if obj.properties.get("spawn_b") in [True, "true", "True"]:
+            boss_zones.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))  # Specifically track boss zones
         # For player spawn zones:
         if obj.properties.get("spawn_p") in [True, "true", "True"]:
             player_zones.append(pygame.Rect(obj.x, obj.y, obj.width, obj.height))
-    return player_zones, spawn_zones
+    return player_zones, spawn_zones, boss_zones
 
 def random_point_in_rect(rect):
     """Return a random point (pygame.Vector2) inside the given rect."""
@@ -41,14 +43,27 @@ def random_point_in_rect(rect):
 def spawn_enemy(speed_multiplier=1.0, tmx_data=None, current_level=1):
     """
     Spawns an enemy (zombie or human) based on the current level.
+    Specifically uses spawn_b zones for boss spawning.
     """
     global boss_spawned
     pos = None
     if tmx_data:
-        _, spawn_zones = load_spawn_zones(tmx_data)
+        _, spawn_zones, boss_zones = load_spawn_zones(tmx_data)
+        
+        # Boss spawns only ONCE, specifically in boss zones on level 7
+        if current_level == 7 and not boss_spawned and boss_zones:
+            zone = random.choice(boss_zones)
+            pos = random_point_in_rect(zone)
+            boss_spawned = True  # Set flag to prevent future spawns
+            
+            from BossZombie import BossZombie
+            return BossZombie(pos, speed_multiplier)
+        
+        # Use existing spawn zones for other enemies if no specific zone found
         if spawn_zones:
             zone = random.choice(spawn_zones)
             pos = random_point_in_rect(zone)
+    
     if pos is None:
         # Fallback: choose a random position relative to (0,0)
         angle = random.uniform(0, 2 * math.pi)
@@ -59,19 +74,14 @@ def spawn_enemy(speed_multiplier=1.0, tmx_data=None, current_level=1):
     from PoliceZombie import PoliceZombie
     from ArmyZombie import ArmyZombie
     from human import Human
-    from BossZombie import BossZombie
+    
     # Specifically for level 4, spawn only humans
     if current_level == 4:
         return Human(pos, speed_multiplier)
     
-    if current_level == 7 and not boss_spawned:
-        boss_spawned = True
-        return BossZombie(pos, speed_multiplier)
     # For other levels, use existing zombie spawning logic
     if current_level < 2:
         return Zombie(pos, speed_multiplier)
-        # return BossZombie(pos, speed_multiplier)
-        # return PoliceZombie(pos, speed_multiplier)
     else:
         rand_value = random.random()
         if rand_value < 1/3:
@@ -86,7 +96,7 @@ def find_player_spawn(tmx_data):
     Finds a spawn position for the player from the spawn_p zones.
     Falls back to (0,0) if none are found.
     """
-    player_zones, _ = load_spawn_zones(tmx_data)
+    player_zones, _, _ = load_spawn_zones(tmx_data)
     if player_zones:
         zone = random.choice(player_zones)
         return random_point_in_rect(zone)

@@ -54,7 +54,7 @@ def load_specific_map(current_level):
     if current_level == 1:
         return load_map("deadvillage3.tmx")
     elif current_level == 2:
-        return load_map("deadcity.tmx")
+        return load_map("newcity.tmx")
     elif current_level == 3:
         return load_map("theroom.tmx")
     elif current_level == 4:

@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="103">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="100" height="100" tilewidth="32" tileheight="32" infinite="0" nextlayerid="5" nextobjectid="104">
  <tileset firstgid="1" name="armory 3" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742724397.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742724397.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="1025" name="lab 1" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742725643.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742725643.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="2049" name="interrogation room" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742725510.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742725510.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="3073" name="lab 2" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742725668.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742725668.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="4097" name="armory1" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742724173.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742724173.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="5121" name="control 2" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742725823.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742725823.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="6145" name="lab 3" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742725698.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742725698.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="7169" name="control 3" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742725886.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742725886.png" width="1024" height="1024"/>
  </tileset>
  <tileset firstgid="8193" name="armory 2" tilewidth="32" tileheight="32" tilecount="1024" columns="32">
-  <image source="./assets/taaft.com-tileset-generator-by-hanansaeed-1742724259.png" width="1024" height="1024"/>
+  <image source="assets/taaft.com-tileset-generator-by-hanansaeed-1742724259.png" width="1024" height="1024"/>
  </tileset>
  <layer id="1" name="background" width="100" height="100">
   <data encoding="csv">
@@ -624,6 +624,11 @@
   <object id="102" x="1604" y="1716" width="56" height="60">
    <properties>
     <property name="spawn_p" value="true"/>
+   </properties>
+  </object>
+  <object id="103" x="1610" y="2614" width="86" height="100">
+   <properties>
+    <property name="spawn_b" value="true"/>
    </properties>
   </object>
  </objectgroup>
