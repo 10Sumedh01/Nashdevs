@@ -14,7 +14,7 @@ shotgun_sound.set_volume(0.5)
 pistol_sound = Sound('pistol.mp3')
 akm_sound = Sound('akm.mp3')
 gun_switch_sound = Sound('gun_switch.mp3')
-
+knife_sound = Sound('knife_stab.mp3')
 class Player:
     def __init__(self, pos=(0,0)):
         self.pos = pygame.Vector2(pos)
@@ -145,6 +145,7 @@ class Player:
         if self.has_knife:
             self.knife_attack_active = True
             self.knife_attack_start = pygame.time.get_ticks()
+            knife_sound.play()
             self.current_image = self.knife_attack_image
 
     def knife_attack(self, zombies):

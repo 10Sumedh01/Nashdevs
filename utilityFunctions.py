@@ -80,10 +80,10 @@ def draw_objects(surface, tmx_data, layer_name, offset):
                 surface.blit(tile, (obj.x - offset.x, obj.y - offset.y))
             else:
                 rect = pygame.Rect(obj.x - offset.x, obj.y - offset.y, obj.width, obj.height)
-                pygame.draw.rect(surface, (255, 0, 255), rect, 2)
+                # pygame.draw.rect(surface, (255, 0, 255), rect, 2)
         else:
             rect = pygame.Rect(obj.x - offset.x, obj.y - offset.y, obj.width, obj.height)
-            pygame.draw.rect(surface, (255, 0, 255), rect, 2)
+            # pygame.draw.rect(surface, (255, 0, 255), rect, 2)
 
 def spawn_zombie(player_pos, speed_multiplier=1.0, tmx_data=None):
     """

@@ -5,7 +5,7 @@ import math
 from pygame.locals import *
 from constants import (WIDTH, HEIGHT, FPS, SPAWN_INTERVAL, COLLISION_THRESHOLD, 
                        TEXT_COLOR, DARK_RED, PLAYER_MAX_HEALTH, PLAYER_SIZE, 
-                       BULLET_RANGE, HEALTH_PACK_AMOUNT, AMMO_PACK_AMOUNT, ZOMBIE_SIZE)
+                       BULLET_RANGE, HEALTH_PACK_AMOUNT, AMMO_PACK_AMOUNT, ZOMBIE_SIZE,BLACK)
 from Player import Player
 from Pickup import Pickup
 from utilityFunctions import load_map, load_collision_rects, draw_map, draw_objects, spawn_special_zombie
@@ -27,6 +27,7 @@ from pause import pause
 from neural_siege import neural_siege_main
 bg_music = Sound('game_bg.mp3')
 pickup_sound = Sound('pickup.mp3')
+
 
 # Define game states.
 STATE_MENU = "menu"
@@ -241,7 +242,7 @@ def draw_game_scene(screen, tmx_data, offset, player, bullets, pickups, zombies,
     """
     Draw the game scene in the running state, including the map, objects, UI, blood effects, and minimap.
     """
-    screen.fill(DARK_RED)
+    screen.fill(BLACK)
     draw_map(screen, tmx_data, offset)
     draw_objects(screen, tmx_data, "props", offset)
 
