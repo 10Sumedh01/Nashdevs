@@ -1,72 +1,179 @@
-# Game Storyline System
+<h1 align="center"><b>Resident Evil: 2D – A Pygame Survival Horror</b></h1>
+  
+![image](https://github.com/user-attachments/assets/daf41458-da04-4fbc-90a4-f0b888ca5c53)
+Levels Overview:
+![image](https://github.com/user-attachments/assets/24f615ae-45f0-4a75-8c8e-3e672925a27e)
+![image](https://github.com/user-attachments/assets/8f349bda-10c0-4c29-9414-118e1fdfc4f5)
 
-This project is a Python-based storyline system for a game, built using the `pygame` library. It allows players to experience immersive story sequences with images, text, and voiceovers for each level of the game.
 
-## Features
+A **retro-inspired survival horror** that blends **classic aesthetics with modern AI**, offering intense combat, strategic puzzles, and immersive storytelling.  
 
-- **Dynamic Story Slides**: Each level has a series of slides with images, text, and optional voiceovers.
-- **Word Wrapping**: Text is rendered with word wrapping to fit the screen dimensions.
-- **Voiceover Support**: Each slide can play a corresponding audio file for added immersion.
-- **Keyboard Controls**: Players can progress through the story using the `SPACE` key or exit with the `ESC` key.
+**👥 Team:** Nashdevs  
+**📩 Contributors:**  
+- [wizardwithcodehazard](https://github.com/wizardwithcodehazard)  
+- [scientificrao](https://github.com/scientificrao)  
+- [Sparky17561](https://github.com/Sparky17561)  
+- [kktheomniscient](https://github.com/kktheomniscient)  
 
-## File Structure
+---
+
+## **🧟 Overview**  
+
+Welcome to **Resident Evil: 2D**, a **top-down survival horror** that reimagines the genre with **dynamic AI, tactical combat, and mind-bending puzzles**. Navigate a **post-apocalyptic world**, battle the undead, and uncover **secrets hidden in AI-driven minigames and challenges**.  
+
+---
+
+## **🔥 Key Features**  
+
+✔ **Classic 2D Horror** – Atmospheric visuals inspired by early Resident Evil titles.  
+✔ **Dynamic AI Challenges** – Adaptive enemies and puzzles that evolve with your decisions.  
+✔ **Intense Combat** – Face zombies, mutated bosses, and human adversaries in high-stakes battles.  
+✔ **Puzzle-Solving with AI** – Experience AI-driven security puzzles, minigames, and neural network-based challenges.  
+✔ **Rich Narrative & Exploration** – Unravel the mystery of the apocalypse across **8 unique levels**.  
+✔ **Custom Level Design** – Created with **Tiled Map Editor**, featuring AI-assisted assets.  
+
+---
+
+## **🎮 Level Breakdown**  
+
+### **Level 1: Dead Village**  
+☣ **A decayed village** filled with shadows and lurking horrors. Learn survival basics, scavenge for resources, and battle your first wave of zombies.  
+
+### **Level 2: Dead City**  
+🏙 **An abandoned urban sprawl**, overrun with hordes of the infected. Use sniper points, barricades, and strategy to stay alive.  
+
+### **Level 3: Neural Siege – The Perceptron**  
+🧠 **An underground lab** where puzzles are based on AI models (Perceptrons & Multiclass Classification). Solve them to hack doors and disable security systems.  
+
+### **Level 4: The Room – Human vs Human**  
+🎭 **A brutal survival arena** where you face bandits, rogue scientists, and mercenaries. Tactical positioning and resource management are key.  
+
+### **Level 5: Gen AI Doctor's Quiz**  
+📝 **A deadly AI-powered quiz** where your performance affects your fate. Answer correctly or suffer the consequences.  
+
+### **Level 6 & 7: Headquarter Assault**  
+🏢 **Infiltrate the Umbrella Corp HQ**, engage in tactical combat, and face the **ultimate boss battle** against a genetically enhanced nightmare.  
+
+### **Level 8: Antidote Security Lock**  
+🔐 **Crack a dynamically generated security puzzle** to access the final antidote and determine your fate.  
+
+---
+
+## **🛠 Tech Stack & Tools**  
+
+- **Pygame** – Core game engine.  
+- **Python 3.x** – Main programming language.  
+- **Tiled Map Editor** – Level design & environment mapping.  
+- **AI Integration** – AI-enhanced minigames & puzzles (ChatGPT, DALL·E).  
+
+---
+
+## **🚀 Installation & Running the Game**  
+
+### **1️⃣ Prerequisites**  
+Ensure you have **Python 3.x** and **Pygame** installed.  
+
+```bash
+pip install -r requirements.txt
+```
+
+### **2️⃣ Run the Game**  
+```bash
+git clone https://github.com/yourusername/kktheomniscient/Nashdevs.git
+cd Nashdevs
+python menu.py
+```
+
+---
+
+## **📁 Project Structure**  
 
 ```
-game/
-├── assets/
-│   ├── story/          # Images for story slides
-│   └── scenes/         # Audio files for voiceovers
-├── Nashdevs/
-│   ├── storyline.py    # Main storyline logic
-│   └── sound.py        # Sound handling module
-└── README.md           # Project documentation
+Directory structure:
+└── kktheomniscient-nashdevs/
+    ├── README.md
+    ├── aiIntegration.py
+    ├── akm.py
+    ├── antidoteg.py
+    ├── ArmyZombie.py
+    ├── arsenal.py
+    ├── BossZombie.py
+    ├── Bullet.py
+    ├── button.py
+    ├── checkpoint.py
+    ├── Companion.py
+    ├── CompanionBullet.py
+    ├── constants.py
+    ├── deadcity.tmx
+    ├── deadvillage3.tmx
+    ├── doctor_minigame.py
+    ├── DynamicObstacle.py
+    ├── Endless.py
+    ├── game_end.py
+    ├── heaq1.tmx
+    ├── heaq2.tmx
+    ├── human.py
+    ├── levelManager.py
+    ├── main.py
+    ├── MapManager.py
+    ├── menu.py
+    ├── minimap.py
+    ├── neural_siege.py
+    ├── newcity.tmx
+    ├── Obstacle.py
+    ├── pause.py
+    ├── Pickup.py
+    ├── Player.py
+    ├── PoliceZombie.py
+    ├── requirements.txt
+    ├── rps.py
+    ├── shotgun.py
+    ├── sound.py
+    ├── spawn.py
+    ├── SpecialZombie.py
+    ├── storyline.py
+    ├── theroom.tmx
+    ├── ToxicPuddle.py
+    ├── utilityFunctions.py
+    ├── Zombie.py
+    └── assets/
+        ├── DALL·E 2025-03-23 12.24.59 - A top-down view of a sprawling urban cityscape in a post-apocalyptic setting, continuing the theme of the previous image. The city features a long, pa.webp
+        ├── font.ttf
+        ├── sound/
+        │   └── scenes/
+        └── story/
 ```
 
-## How to Run
+---
 
-1. **Install Dependencies**:
-   Ensure you have Python installed along with the `pygame` library. You can install `pygame` using:
-   ```bash
-   pip install pygame
-   ```
+## **🤝 Contributing**  
 
-2. **Run the Game**:
-   Execute the `storyline.py` file to start the storyline system:
-   ```bash
-   python storyline.py
-   ```
+🔥 **Want to improve the game? Join us!**  
 
-3. **Navigate Through the Story**:
-   - Press `SPACE` to move to the next slide.
-   - Press `ESC` to exit the storyline.
+1. **Fork the repo** & create a new branch.  
+2. **Make your changes** and commit them.  
+3. **Submit a Pull Request.**  
 
-## Adding New Levels
+For detailed guidelines, check **[CONTRIBUTING.md](CONTRIBUTING.md)**.  
 
-To add a new level:
-1. Create a new function in `storyline.py` (e.g., `play_levelX_story`).
-2. Define a list of `StorySlide` objects with the appropriate image, text, and voiceover paths.
-3. Add the function to the `storyline_functions` dictionary in the `play_level_story` function.
+---
 
-Example:
-```python
-def play_levelX_story(screen):
-    levelX_slides = [
-        StorySlide("assets/story/levelX_1.png", "Your custom story text here.", "scenes/levelX_1.mp3"),
-        # Add more slides as needed
-    ]
-    return play_story_sequence(screen, levelX_slides)
-```
+## **🛠 Future Plans**  
 
-## Dependencies
+- 🎮 **Multiplayer mode & online co-op.**  
+- 🧩 **More AI-driven puzzles & adaptive enemy AI.**  
+- 📢 **Expanding to Steam & console support.**  
+- 🕹 **Additional levels, challenges, and boss fights.**  
 
-- Python 3.7+
-- `pygame` library
+---
 
-## License
+## **🎖 Acknowledgments**  
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+💀 Inspired by **classic Resident Evil & survival horror games.**  
+🛠 Built with **Pygame, Python, and AI-powered assets.**  
+🎮 Huge thanks to the **open-source community & playtesters!**  
 
-## Credits
+---
 
-- **Developer**: Saiprasad, Sahil, Krishnakant, Rajnish
-- **Assets**: Images and audio files used in the storyline are placeholders and should be replaced with your own assets.
+**🔪 Survival isn’t just about fighting the undead—it’s about outsmarting them!**  
+
